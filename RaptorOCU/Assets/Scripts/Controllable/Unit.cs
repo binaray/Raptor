@@ -20,9 +20,10 @@ namespace Controllable
 
         private Transform spriteTransform;
 
-        private void Start()
+        public virtual void Init()
         {
             spriteTransform = transform.GetChild(0);
+            SetSelectedColors(false);
         }
 
         public virtual void SetSelectedColors(bool isSelected)
@@ -46,7 +47,14 @@ namespace Controllable
 
         public void MoveForward(float forwardDelta)
         {
-            transform.position += forwardDelta * spriteTransform.rotation.eulerAngles;
+            Vector3 directionVector = spriteTransform.rotation * Vector3.up;
+            transform.position += directionVector * forwardDelta;
+        }
+
+        public void MoveAndRotateTowards(Vector2 target, float forwardDelta, float rotationDelta)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, target, forwardDelta);
+            //spriteTransform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
         }
     }
 

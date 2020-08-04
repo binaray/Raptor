@@ -8,7 +8,7 @@ namespace Controllable
     {
         private void Start()
         {
-            SetSelectedColors(false);
+            Init();
         }
 
         public override void SetSelectedColors(bool isSelected)

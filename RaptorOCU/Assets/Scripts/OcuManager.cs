@@ -52,13 +52,22 @@ public class OcuManager : Singleton<OcuManager>
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
 
     /*Test Values--TO REMOVE ON PRODUCTION*/
-    float curSpeed = 10f;
+    float curSpeed = 5f;
+    float rotSpeed = 60f;
 
     private OcuLogger ocuLogger;
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
 
+    IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target)
+    {
+        while (Vector2.Distance(unit.position, target) > 1f)
+        {
+            unit.MoveAndRotateTowards(target, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
+            yield return null;
+        }
+    }
 
     void Start()
     {
@@ -91,8 +100,8 @@ public class OcuManager : Singleton<OcuManager>
             }
             else
             {
-                Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+                //Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
@@ -111,10 +120,27 @@ public class OcuManager : Singleton<OcuManager>
             {
                 //controllableUnits[SelectedUnit].GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Lerp(0, Input.GetAxis("Horizontal") * curSpeed, 0.8f),
                 //    Mathf.Lerp(0, Input.GetAxis("Vertical") * curSpeed, 0.8f));
-                if(Input.GetKey("right")) //Right arrow key to turn right
-                    controllableUnits[SelectedUnit].transform.Rotate(-Vector3.forward * curSpeed * Time.deltaTime);
-                if (Input.GetKey("left"))//Left arrow key to turn left
-                    controllableUnits[SelectedUnit].transform.Rotate(Vector3.forward * curSpeed * Time.deltaTime);
+
+                controllableUnits[SelectedUnit].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
+                controllableUnits[SelectedUnit].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
+
+                //if (Input.GetKey("up")) //Up arrow key to move forwards
+                //    controllableUnits[SelectedUnit].MoveForward(curSpeed * Time.deltaTime);
+                //else if (Input.GetKey("down"))//Down arrow key to move backwards
+                //    controllableUnits[SelectedUnit].MoveForward(-curSpeed * Time.deltaTime);
+                //if (Input.GetKey("right")) //Right arrow key to turn right
+                //    controllableUnits[SelectedUnit].Rotate(-Vector3.forward * rotSpeed * Time.deltaTime);
+                //else if (Input.GetKey("left"))//Left arrow key to turn left
+                //    controllableUnits[SelectedUnit].Rotate(Vector3.forward * rotSpeed * Time.deltaTime);
+            }
+            else
+            {
+                if (Input.GetMouseButtonDown(1))
+                {
+                    Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits[SelectedUnit], mousePos2D));
+                    //print(mousePos2D.ToString());
+                }
             }
         }
     }

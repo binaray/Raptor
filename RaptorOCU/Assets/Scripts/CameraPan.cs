@@ -6,7 +6,7 @@ public class CameraPan : MonoBehaviour
 {
 
     [SerializeField]
-    private int panBorderSize = 40;
+    private int panBorderSize = 30;
     [SerializeField]
     private float panSpeed = 10f;
     bool isCamMoving = false;
@@ -33,12 +33,6 @@ public class CameraPan : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        print(Screen.width);
-        print(Screen.height);
-    }
 
     // Update is called once per frame
     void Update()
