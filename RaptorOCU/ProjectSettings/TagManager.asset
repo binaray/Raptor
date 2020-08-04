@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - ControllableUnit
   layers:
   - Default
   - TransparentFX
@@ -46,4 +47,7 @@ TagManager:
     locked: 0
   - name: Controllable
     uniqueID: 2231386621
+    locked: 0
+  - name: Text
+    uniqueID: 3351710955
     locked: 0
