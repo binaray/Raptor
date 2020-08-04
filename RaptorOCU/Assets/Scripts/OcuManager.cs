@@ -53,12 +53,13 @@ public class OcuManager : Singleton<OcuManager>
 
     /*Test Values--TO REMOVE ON PRODUCTION*/
     float curSpeed = 10f;
+
     private OcuLogger ocuLogger;
-
-
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
+
+
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
@@ -78,29 +79,28 @@ public class OcuManager : Singleton<OcuManager>
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
-
-            //Set up the new Pointer Event
+            //First check if there are any UI element collisions
             m_PointerEventData = new PointerEventData(m_EventSystem);
-            m_PointerEventData.position = Input.mousePosition;//this.transform.localPosition;
-
+            m_PointerEventData.position = Input.mousePosition;
 
             List<RaycastResult> results = new List<RaycastResult>();
             m_Raycaster.Raycast(m_PointerEventData, results);
             if (results.Count > 0)
             {
-                foreach (RaycastResult r in results)
-                    Debug.Log("Hit " + r.gameObject.name);
+                Debug.Log("Hit " + results[0].gameObject.layer);
             }
-
-
-            RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
-            if (hit.collider != null)
+            else
             {
-                SelectedUnit = hit.collider.gameObject.GetComponent<Unit>().id;
+                Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+
+                RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
+                if (hit.collider != null)
+                {
+                    SelectedUnit = hit.collider.gameObject.GetComponent<Unit>().id;
+                }
+                else SelectedUnit = null;
             }
-            else SelectedUnit = null;
         }
 
 
@@ -109,8 +109,12 @@ public class OcuManager : Singleton<OcuManager>
             //movement controls
             if (IsManualControl)
             {
-                controllableUnits[SelectedUnit].GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Lerp(0, Input.GetAxis("Horizontal") * curSpeed, 0.8f),
-                    Mathf.Lerp(0, Input.GetAxis("Vertical") * curSpeed, 0.8f));
+                //controllableUnits[SelectedUnit].GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Lerp(0, Input.GetAxis("Horizontal") * curSpeed, 0.8f),
+                //    Mathf.Lerp(0, Input.GetAxis("Vertical") * curSpeed, 0.8f));
+                if(Input.GetKey("right")) //Right arrow key to turn right
+                    controllableUnits[SelectedUnit].transform.Rotate(-Vector3.forward * curSpeed * Time.deltaTime);
+                if (Input.GetKey("left"))//Left arrow key to turn left
+                    controllableUnits[SelectedUnit].transform.Rotate(Vector3.forward * curSpeed * Time.deltaTime);
             }
         }
     }
