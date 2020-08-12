@@ -4,9 +4,22 @@ using UnityEngine;
 
 public class OcuLogger : Singleton<OcuLogger>
 {
-    public void Log(string message)
+    //verbose
+    public void Logv(string message)
     {
         print(message);
+    }
+
+    //warning
+    public void Logw(string message)
+    {
+        Debug.LogWarning(message);
+    }
+
+    //error
+    public void Loge(string message)
+    {
+        Debug.LogError(message);
     }
 
     // Start is called before the first frame update

@@ -6,17 +6,59 @@ namespace Controllable
 {
     public class Unit : MonoBehaviour
     {
-        //TODO: differentiate between ros metrics, unity scene, and lat/long
-        public Vector3 position;
-        public Quaternion rotation;
-        public string id;
-        public Status status;
-
-        /*Static constant vars*/
+        /*Static constant reference vars*/
         public static Color beaconColor = new Color(0.41f, 1.00f, 0.96f);
         public static Color payloadColor = new Color(0.00f, 0.82f, 1.00f);
         public static Color focusedColor = Color.white;
         public static Color focusInvColor = Color.black;
+
+        /*Unit properties*/
+        // Real positional data onsite
+        protected Vector3 _realPos;
+        protected Quaternion _realRot;
+
+        //identification values
+        protected string _id;
+        private int _num = -1;
+
+        [ReadOnly]
+        public Status status;
+
+        /* Getter, setters*/
+        public Vector3 realPosition
+        {
+            get { return _realPos; }
+            set
+            {
+                //TODO: translate real position to transform position
+                transform.position = value;
+                _realPos = value;
+            }
+        }
+        // may not be needed
+        public Quaternion realRotation
+        {
+            get { return _realRot; }
+            set
+            {
+                //TODO: translate real rotation to transform rotation
+                transform.rotation = value;
+                _realRot = value;
+            }
+        }
+        public string id {
+            get { return _id; }
+            set { _id = value; }
+        }
+        public int num
+        {
+            get { return _num; }
+            set {
+                transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().text = value.ToString();
+                _num = value;
+            }
+        }
+
 
         private Transform spriteTransform;
 

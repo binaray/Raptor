@@ -14,6 +14,7 @@ public class OcuManager : Singleton<OcuManager>
         set
         {
             //check previous selection then clear and reset buffers if any
+            ocuLogger.Logv(string.Format("{0} selected", value));
             if (_selectedUnit != null && _selectedUnit != value)
             {
                 controllableUnits[_selectedUnit].SetSelectedColors(false);
@@ -43,17 +44,27 @@ public class OcuManager : Singleton<OcuManager>
         }
         set
         {
-            ocuLogger.Log(value ? "Manual control enabled" : "Auto control mode");
+            ocuLogger.Logv(value ? "Manual control enabled" : "Auto control mode");
             _isManualControl = value;
         }
     }
 
+    [SerializeField]
+    private Beacon beaconPrefab;
+    [SerializeField]
+    private Payload payloadPrefab;
     //public List<Unit> controllableUnits = new List<Unit>();
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
 
     /*Test Values--TO REMOVE ON PRODUCTION*/
-    float curSpeed = 5f;
-    float rotSpeed = 60f;
+    [SerializeField]
+    private float curSpeed = 5f;
+    [SerializeField]
+    private float rotSpeed = 60f;
+    [SerializeField]
+    private int beaconCount = 4;
+    [SerializeField]
+    private int payloadCount = 10;
 
     private OcuLogger ocuLogger;
     GraphicRaycaster m_Raycaster;
@@ -62,7 +73,7 @@ public class OcuManager : Singleton<OcuManager>
 
     IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target)
     {
-        while (Vector2.Distance(unit.position, target) > 1f)
+        while (Vector2.Distance(unit.transform.position, target) > .2f)
         {
             unit.MoveAndRotateTowards(target, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
             yield return null;
@@ -72,13 +83,30 @@ public class OcuManager : Singleton<OcuManager>
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
-        ocuLogger.Log("Initializing--");
+        ocuLogger.Logv("Initializing--");
+
         //populate controllableUnits list
-        Beacon b = GameObject.Find("beacon").GetComponent<Beacon>();
-        Payload p = GameObject.Find("payload").GetComponent<Payload>();
-        controllableUnits.Add(b.id, b);
-        controllableUnits.Add(p.id, p);
         //create units onscene
+        for (int i=0; i < beaconCount; i++)
+        {
+            string id = string.Format("b{0}", i);
+            Beacon b = Instantiate<Beacon>(beaconPrefab);
+            b.id = id;
+            b.num = i;
+            b.realPosition = new Vector3(i%2*5, i/2*5, 0);
+            ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
+            controllableUnits.Add(id, b);
+        }
+        for (int i = 0; i < payloadCount; i++)
+        {
+            string id = string.Format("p{0}", i);
+            Payload p = Instantiate<Payload>(payloadPrefab);
+            p.id = id;
+            p.num = i;
+            p.realPosition = new Vector3(i, 3, 0);
+            ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
+            controllableUnits.Add(id, p);
+        }
 
         m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
         m_EventSystem = GetComponent<EventSystem>();
@@ -100,7 +128,6 @@ public class OcuManager : Singleton<OcuManager>
             }
             else
             {
-                //Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
