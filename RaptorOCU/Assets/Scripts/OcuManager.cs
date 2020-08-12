@@ -49,6 +49,7 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
+    /* Unit prefabs and reference container */
     [SerializeField]
     private Beacon beaconPrefab;
     [SerializeField]
@@ -56,7 +57,7 @@ public class OcuManager : Singleton<OcuManager>
     //public List<Unit> controllableUnits = new List<Unit>();
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
 
-    /*Test Values--TO REMOVE ON PRODUCTION*/
+    /* Test Values--TO REMOVE ON PRODUCTION */
     [SerializeField]
     private float curSpeed = 5f;
     [SerializeField]
@@ -66,7 +67,14 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private int payloadCount = 10;
 
+    /* Scene graphical displays */
+    [SerializeField]
+    private LineRenderer boundaryLineRenderer;
+    
+    /* Logger */
     private OcuLogger ocuLogger;
+
+    /* Raycasting variables for unit selection on scene */
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
@@ -77,6 +85,118 @@ public class OcuManager : Singleton<OcuManager>
         {
             unit.MoveAndRotateTowards(target, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
             yield return null;
+        }
+    }
+
+    HashSet<string> beaconIds = new HashSet<string>();
+    Stack<Vector2> boundaryDrawPoints;
+
+    Vector2 minPoint = new Vector2();
+
+    // A utility function to find next to top in a stack 
+    Vector2 NextToTop(Stack<Vector2> S)
+    {
+        Vector2 p = S.Pop();
+        Vector2 res = S.Peek();
+        S.Push(p);
+        return res;
+    }
+
+    // To find orientation of ordered triplet (p, q, r). 
+    // The function returns following values 
+    // 0 --> p, q and r are colinear 
+    // 1 --> Clockwise 
+    // 2 --> Counterclockwise 
+    int Orientation(Vector2 p, Vector2 q, Vector2 r)
+    {
+        int val = System.Convert.ToInt32(
+                    (q.y - p.y) * (r.x - q.x) -
+                    (q.x - p.x) * (r.y - q.y));
+        if (val == 0) return 0;  // colinear 
+        return (val > 0) ? 1 : 2; // clock or counterclock wise 
+    }
+
+    // A function used by library function qsort() to sort an array of 
+    // points with respect to the first point 
+    int ComparePolarAngle(Vector2 p1, Vector2 p2) 
+    { 
+        // Find orientation 
+        int o = Orientation(minPoint, p1, p2); 
+        if (o == 0) 
+            return (Vector2.Distance(minPoint, p2) >= Vector2.Distance(minPoint, p1))? -1 : 1; 
+        return (o == 2)? -1: 1; 
+    }
+
+    void GrahamScanBeacons()
+    {
+        List<Vector2> points = new List<Vector2>();
+
+        //1. Push min point to the first index of list
+        bool firstIteration = true;
+        foreach (string id in beaconIds)
+        {
+            if (firstIteration)
+            {
+                minPoint = controllableUnits[id].realPosition;
+                firstIteration = false;
+            }
+            else
+            {
+                Vector2 beaconPos = controllableUnits[id].realPosition;
+                if (beaconPos.y < minPoint.y || beaconPos.y == minPoint.y && beaconPos.x < minPoint.y)
+                {
+                    points.Add(minPoint);
+                    minPoint = beaconPos;
+                }
+                else
+                    points.Add(beaconPos);
+            }
+        }
+        
+        //2. Sort by polar angles; drop furthest if the same
+        points.Sort(ComparePolarAngle);
+
+        //3. Drop near points which have the same angles; leaving only the furthest
+        List<int> toRemove = new List<int>();
+        for (int i = 1; i < points.Count; i++)
+        {
+            // Keep removing i while angle of i and i+1 is same 
+            // with respect to p0 
+            while (i < points.Count - 1 && Orientation(minPoint, points[i], points[i + 1]) == 0)
+            {
+                toRemove.Add(i);
+                i++;
+            }
+        }
+        for (int i = toRemove.Count - 1; i > -1; i--)
+        {
+            points.RemoveAt(toRemove[i]);
+        }
+
+        //4. Push points onto a stack
+        if (points.Count < 2) return;
+        Stack<Vector2> stack = new Stack<Vector2>();
+        stack.Push(minPoint);
+        stack.Push(points[0]);
+        stack.Push(points[1]);
+        // Process remaining n-3 points 
+        for (int i = 2; i < points.Count; i++)
+        {
+            // Keep removing top while the angle formed by 
+            // points next-to-top, top, and points[i] makes 
+            // a non-left turn 
+            while (Orientation(NextToTop(stack), stack.Peek(), points[i]) != 2)
+                stack.Pop();
+            stack.Push(points[i]);
+        }
+
+        boundaryLineRenderer.positionCount = stack.Count;
+        int c = 0;
+        while (stack.Count > 0)
+        {
+            Vector2 p = stack.Pop();
+            boundaryLineRenderer.SetPosition(c++, p);
+            print(p.ToString());
         }
     }
 
@@ -96,7 +216,9 @@ public class OcuManager : Singleton<OcuManager>
             b.realPosition = new Vector3(i%2*5, i/2*5, 0);
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);
+            beaconIds.Add(id);
         }
+
         for (int i = 0; i < payloadCount; i++)
         {
             string id = string.Format("p{0}", i);
@@ -170,6 +292,9 @@ public class OcuManager : Singleton<OcuManager>
                 }
             }
         }
+
+        // Bg Graphic updates
+        GrahamScanBeacons();
     }
 }
 

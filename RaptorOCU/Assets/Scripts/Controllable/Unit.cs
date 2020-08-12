@@ -81,22 +81,27 @@ namespace Controllable
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
             }
         }
-        
+
+        /* Movement Test Methods -Do not use on production*/
         public void Rotate(Vector3 rotationVector)
         {
             spriteTransform.Rotate(rotationVector);
         }
 
+        /* Movement Test Methods -Do not use on production*/
         public void MoveForward(float forwardDelta)
         {
             Vector3 directionVector = spriteTransform.rotation * Vector3.up;
-            transform.position += directionVector * forwardDelta;
+            realPosition += directionVector * forwardDelta;
         }
 
+        /* Movement Test Methods -Do not use on production*/
         public void MoveAndRotateTowards(Vector2 target, float forwardDelta, float rotationDelta)
         {
-            transform.position = Vector2.MoveTowards(transform.position, target, forwardDelta);
-            //spriteTransform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
+            Vector2 nextPos = Vector2.MoveTowards(transform.position, target, forwardDelta);
+            //transform.position = nextPos;
+            realPosition = nextPos;
+            spriteTransform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
         }
     }
 
