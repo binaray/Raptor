@@ -213,7 +213,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1218650947}
-  - component: {fileID: 1218650949}
   - component: {fileID: 1218650948}
   m_Layer: 0
   m_Name: GameObject
@@ -245,25 +244,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1218650946}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1820970636949b429b4bd4327754e34, type: 3}
+  m_Script: {fileID: 11500000, guid: 72d261703158ace4496a119cfcd69c1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActionName: 
-  TimeStep: 0
-  Order: 0
---- !u!114 &1218650949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1218650946}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff98778ae051cfd40a6e4effdf851ebd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Timeout: 10
-  Serializer: 0
-  Protocol: 0
-  RosBridgeServerUrl: ws://192.168.1.212:9090
+  uri: ws://192.168.1.214:9090
