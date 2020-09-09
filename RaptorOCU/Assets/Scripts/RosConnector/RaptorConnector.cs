@@ -1,27 +1,66 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using RosSharp.RosBridgeClient;
 using RosSharp.RosBridgeClient.Messages.Geometry;
 using std_msgs = RosSharp.RosBridgeClient.Messages.Standard;
 using nav_msgs = RosSharp.RosBridgeClient.Messages.Navigation;
 using rosapi = RosSharp.RosBridgeClient.Services.RosApi;
-using System.Diagnostics;
+//using System.Diagnostics;
 using RosSharp.RosBridgeClient.Services;
 
-public class NumListener : MonoBehaviour
+public class RaptorConnector : MonoBehaviour
 {
-
-    public string uri = "ws://192.168.137.185:9090";
+    public int Timeout = 10;
+    public RosSocket.SerializerEnum Serializer;
     private RosSocket rosSocket;
+    public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
+
+    private ManualResetEvent isConnected = new ManualResetEvent(false);
+
     string subscriptionId = "";
+
+    public void Awake()
+    {
+        new Thread(ConnectAndWait).Start();
+    }
+    private void ConnectAndWait()
+    {
+        rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
+
+        if (!isConnected.WaitOne(Timeout * 1000))
+            Debug.LogWarning("Failed to connect to RosBridge at: " + RosBridgeServerUrl);
+    }
+    public static RosSocket ConnectToRos(string serverUrl, System.EventHandler onConnected = null, System.EventHandler onClosed = null, RosSocket.SerializerEnum serializer = RosSocket.SerializerEnum.JSON)
+    {
+        RosSharp.RosBridgeClient.Protocols.IProtocol protocol = new RosSharp.RosBridgeClient.Protocols.WebSocketSharpProtocol(serverUrl);
+        protocol.OnConnected += onConnected;
+        protocol.OnClosed += onClosed;
+        return new RosSocket(protocol, serializer);
+    }
+    private void OnConnected(object sender, System.EventArgs e)
+    {
+        isConnected.Set();
+        Debug.Log("Connected to RosBridge: " + RosBridgeServerUrl);
+    }
+    private void OnClosed(object sender, System.EventArgs e)
+    {
+        isConnected.Reset();
+        Debug.Log("Disconnected from RosBridge: " + RosBridgeServerUrl);
+    }
 
     void Start()
     {
-        rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
+        //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
         //Subscribe("/chatter");
         OdomSubscribe("/position");
         //CallService();
+    }
+
+    private void OnApplicationQuit()
+    {
+        rosSocket.Close();
     }
 
     public void OdomSubscribe(string id)
@@ -39,20 +78,6 @@ public class NumListener : MonoBehaviour
     public void Subscribe(string id)
     {
         subscriptionId = rosSocket.Subscribe<std_msgs.String>(id, SubscriptionHandler);
-        StartCoroutine(WaitForKey());
-    }
-
-    private IEnumerator WaitForKey()
-    {
-        UnityEngine.Debug.Log("Press any key to close...");
-
-        while (!Input.anyKeyDown)
-        {
-            yield return null;
-        }
-
-        UnityEngine.Debug.Log("Closed");
-        rosSocket.Close();
     }
 
     private void SubscriptionHandler(std_msgs.String message)
