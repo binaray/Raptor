@@ -54,8 +54,8 @@ public class RaptorConnector : MonoBehaviour
     {
         //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
         //Subscribe("/chatter");
-        OdomSubscribe("/position");
-        //CallService();
+        //OdomSubscribe("/position");
+        CallService();
     }
 
     private void OnApplicationQuit()
@@ -70,9 +70,9 @@ public class RaptorConnector : MonoBehaviour
 
     private void OdomSubscriptionHandler(nav_msgs.Odometry odom)
     {
-        UnityEngine.Debug.Log("Message received!");
-        UnityEngine.Debug.Log("x: "+odom.pose.pose.position.x);
-        UnityEngine.Debug.Log("y: " + odom.pose.pose.position.y);
+        //UnityEngine.Debug.Log(string.Format("Unit pos: ({0},{1})\n" +
+        //    "orientation: ({2},{3})", odom.pose.pose.position.x, odom.pose.pose.position.y,
+        //    odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z));
     }
 
     public void Subscribe(string id)
@@ -92,8 +92,7 @@ public class RaptorConnector : MonoBehaviour
         nav_msgs.Odometry pos = new nav_msgs.Odometry();
         pos.pose.pose.position.x = 0.05f;
         pos.pose.pose.position.y = 1;
-        pos.pose.pose.position.y = 10;
-        UnityEngine.Debug.Log(pos.pose.pose.position.x);
+        UnityEngine.Debug.Log(string.Format("Called move to pos: ({0},{1})", pos.pose.pose.position.x, pos.pose.pose.position.y));
         MoveToPosRequest request = new MoveToPosRequest(pos);
         rosSocket.CallService<MoveToPosRequest, MoveToPosResponse>("/move_to_pos", ServiceCallHandler, request);
         //rosSocket.CallService<AddTwoIntsRequest, AddTwoIntsResponse>("/add_two_ints", ServiceCallHandler, request);

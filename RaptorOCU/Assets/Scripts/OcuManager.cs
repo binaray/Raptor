@@ -4,9 +4,12 @@ using UnityEngine;
 using Controllable;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
+using System.Collections.Specialized;
 
 public class OcuManager : Singleton<OcuManager>
 {
+    /* Selected unit id */
     private string _selectedUnit = null;
     public string SelectedUnit
     {
@@ -21,13 +24,13 @@ public class OcuManager : Singleton<OcuManager>
                 IsManualControl = false;
             }
             
-
+            //if a unit is selected
             if (value != null)
             {
                 controllableUnits[value].SetSelectedColors(true);
                 UiManager.Instance.ShowSelectedDisplayFor(controllableUnits[value]);
             }
-            else
+            else //background is selected
             {
                 UiManager.Instance.ResetSelectedUnitDisplay();
                 UiManager.Instance.ShowSelectedDisplayFor(null);
@@ -35,6 +38,8 @@ public class OcuManager : Singleton<OcuManager>
             _selectedUnit = value;
         }
     }
+
+    /* Manual movement control flag for unit */
     private bool _isManualControl = false;
     public bool IsManualControl
     {
@@ -88,11 +93,11 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
+    /* Convex hull algorithm for boundary drawer */
     HashSet<string> beaconIds = new HashSet<string>();
     Stack<Vector2> boundaryDrawPoints;
-
     Vector2 minPoint = new Vector2();
-
+    
     // A utility function to find next to top in a stack 
     Vector2 NextToTop(Stack<Vector2> S)
     {
@@ -101,7 +106,7 @@ public class OcuManager : Singleton<OcuManager>
         S.Push(p);
         return res;
     }
-
+    
     // To find orientation of ordered triplet (p, q, r). 
     // The function returns following values 
     // 0 --> p, q and r are colinear 
@@ -233,9 +238,44 @@ public class OcuManager : Singleton<OcuManager>
         m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
         m_EventSystem = GetComponent<EventSystem>();
     }
-    
+
+    bool pointToFormationMovement = true;
+    float formationProjScale = 1;
+    float degreeOffset = 0;
+    int operationalRobotCount = 5;
+    public Transform projectionRend;
+
     void Update()
     {
+        //TODO: case by states
+        if (pointToFormationMovement)
+        {
+            Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            //equation of circle: (x – h)^2 + (y – k)^2 = r^2, where (h, k) is the center of the circle
+            double d = 360.0 / operationalRobotCount;
+            for (int n = 0; n < operationalRobotCount; n++)
+            {
+                double angle = Math.PI * (degreeOffset + d * n) / 180.0;
+
+                float s = (float)Math.Sin(angle);
+                float c = (float)Math.Cos(angle);
+
+                // translate point back to origin:
+                Vector3 p = new Vector2(mousePos2D.x, formationProjScale);
+                p.x -= mousePos2D.x;
+                p.y -= mousePos2D.y;
+
+                // rotate point
+                float xnew = p.x * c - p.y * s;
+                float ynew = p.x * s + p.y * c;
+
+                // translate point back:
+                p.x = xnew + mousePos2D.x;
+                p.y = ynew + mousePos2D.y;
+                projectionRend.GetChild(n).position = p;
+            }
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             //First check if there are any UI element collisions
