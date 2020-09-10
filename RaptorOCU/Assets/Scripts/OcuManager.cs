@@ -251,17 +251,17 @@ public class OcuManager : Singleton<OcuManager>
         if (pointToFormationMovement)
         {
             Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            //equation of circle: (x – h)^2 + (y – k)^2 = r^2, where (h, k) is the center of the circle
+            //
             double d = 360.0 / operationalRobotCount;
             for (int n = 0; n < operationalRobotCount; n++)
             {
-                double angle = Math.PI * (degreeOffset + d * n) / 180.0;
+                double angle = Math.PI * (d * n + degreeOffset) / 180.0;
 
                 float s = (float)Math.Sin(angle);
                 float c = (float)Math.Cos(angle);
 
                 // translate point back to origin:
-                Vector3 p = new Vector2(mousePos2D.x, formationProjScale);
+                Vector3 p = new Vector2(mousePos2D.x, mousePos2D.y + formationProjScale);
                 p.x -= mousePos2D.x;
                 p.y -= mousePos2D.y;
 
