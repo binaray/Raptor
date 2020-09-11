@@ -11,7 +11,7 @@ public class OcuManager : Singleton<OcuManager>
 {
     /* Selected unit id */
     private string _selectedUnit = null;
-    public string SelectedUnit
+    public string SelectedUnitId
     {
         get { return _selectedUnit; }
         set
@@ -21,7 +21,8 @@ public class OcuManager : Singleton<OcuManager>
             if (_selectedUnit != null && _selectedUnit != value)
             {
                 controllableUnits[_selectedUnit].SetSelectedColors(false);
-                IsManualControl = false;
+                //IsManualControl = false;
+                CurrentMode = ControlModes.NoSelection;
             }
             
             //if a unit is selected
@@ -29,17 +30,39 @@ public class OcuManager : Singleton<OcuManager>
             {
                 controllableUnits[value].SetSelectedColors(true);
                 UiManager.Instance.ShowSelectedDisplayFor(controllableUnits[value]);
+                CurrentMode = ControlModes.Auto;
             }
             else //background is selected
             {
                 UiManager.Instance.ResetSelectedUnitDisplay();
                 UiManager.Instance.ShowSelectedDisplayFor(null);
+                CurrentMode = ControlModes.NoSelection;
             }
             _selectedUnit = value;
         }
     }
 
     /* Manual movement control flag for unit */
+    public enum ControlModes { NoSelection, Auto, Manual}
+    private ControlModes _currentMode;
+    public ControlModes CurrentMode
+    {
+        get { return _currentMode; }
+        set
+        {
+            ocuLogger.Logv(value.ToString() + " mode");
+            switch (value)
+            {
+                case ControlModes.Auto:
+                    projectionRend.gameObject.SetActive(true);
+                    break;
+                default:
+                    projectionRend.gameObject.SetActive(false);
+                    break;
+            }
+            _currentMode = value;
+        }
+    }
     private bool _isManualControl = false;
     public bool IsManualControl
     {
@@ -50,6 +73,7 @@ public class OcuManager : Singleton<OcuManager>
         set
         {
             ocuLogger.Logv(value ? "Manual control enabled" : "Auto control mode");
+            projectionRend.gameObject.SetActive(!value);
             _isManualControl = value;
         }
     }
@@ -201,7 +225,7 @@ public class OcuManager : Singleton<OcuManager>
         {
             Vector2 p = stack.Pop();
             boundaryLineRenderer.SetPosition(c++, p);
-            print(p.ToString());
+            //print(p.ToString());
         }
     }
 
@@ -209,6 +233,9 @@ public class OcuManager : Singleton<OcuManager>
     {
         ocuLogger = OcuLogger.Instance;
         ocuLogger.Logv("Initializing--");
+
+        //Clear UI from any test selections on scene
+        UiManager.Instance.ShowSelectedDisplayFor(null);
 
         //populate controllableUnits list
         //create units onscene
@@ -239,43 +266,64 @@ public class OcuManager : Singleton<OcuManager>
         m_EventSystem = GetComponent<EventSystem>();
     }
 
-    bool pointToFormationMovement = true;
     float formationProjScale = 1;
     float degreeOffset = 0;
-    int operationalRobotCount = 5;
+    int operationalRobotCount = 10;  //TODO replace test value
+    Vector2[] projectedPositions = new Vector2[10];
     public Transform projectionRend;
+    void ProjectFormation()
+    {
+        if (Input.GetKey("q"))
+            degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
+        else if (Input.GetKey("w"))
+            degreeOffset = (degreeOffset + 1) % 360;
+
+        if (Input.GetKey("a"))
+        {
+            formationProjScale = (formationProjScale > 0.5f) ? (formationProjScale - 0.1f) : 0.5f;
+        }
+        else if (Input.GetKey("s"))
+        {
+            formationProjScale += 0.1f;
+            Mathf.Clamp(formationProjScale, 0.5f, 5);
+        }
+
+        Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //Draw points evenly on perimeter of circle
+        double d = 360.0 / operationalRobotCount;
+        for (int n = 0; n < operationalRobotCount; n++)
+        {
+            double angle = Math.PI * (d * n + degreeOffset) / 180.0;
+
+            float s = (float)Math.Sin(angle);
+            float c = (float)Math.Cos(angle);
+
+            // translate point back to origin:
+            Vector3 p = new Vector2(mousePos2D.x, mousePos2D.y + formationProjScale);
+            p.x -= mousePos2D.x;
+            p.y -= mousePos2D.y;
+
+            // rotate point
+            float xnew = p.x * c - p.y * s;
+            float ynew = p.x * s + p.y * c;
+
+            // translate point back:
+            p.x = xnew + mousePos2D.x;
+            p.y = ynew + mousePos2D.y;
+            projectionRend.GetChild(n).position = p;
+            projectedPositions[n] = p;
+        }
+    }
+    void ProjectPoint()
+    {
+        Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //TODO: replace with own ghost
+        projectionRend.GetChild(1).position = mousePos2D;
+    }
 
     void Update()
     {
-        //TODO: case by states
-        if (pointToFormationMovement)
-        {
-            Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            //
-            double d = 360.0 / operationalRobotCount;
-            for (int n = 0; n < operationalRobotCount; n++)
-            {
-                double angle = Math.PI * (d * n + degreeOffset) / 180.0;
-
-                float s = (float)Math.Sin(angle);
-                float c = (float)Math.Cos(angle);
-
-                // translate point back to origin:
-                Vector3 p = new Vector2(mousePos2D.x, mousePos2D.y + formationProjScale);
-                p.x -= mousePos2D.x;
-                p.y -= mousePos2D.y;
-
-                // rotate point
-                float xnew = p.x * c - p.y * s;
-                float ynew = p.x * s + p.y * c;
-
-                // translate point back:
-                p.x = xnew + mousePos2D.x;
-                p.y = ynew + mousePos2D.y;
-                projectionRend.GetChild(n).position = p;
-            }
-        }
-
+        //left mouse button as selector button to select or deselect at anytime
         if (Input.GetMouseButtonDown(0))
         {
             //First check if there are any UI element collisions
@@ -295,39 +343,43 @@ public class OcuManager : Singleton<OcuManager>
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
-                    SelectedUnit = hit.collider.gameObject.GetComponent<Unit>().id;
+                    SelectedUnitId = hit.collider.gameObject.GetComponent<Unit>().id;
                 }
-                else SelectedUnit = null;
+                else SelectedUnitId = null;
             }
         }
 
 
-        if (SelectedUnit != null)
+        if (SelectedUnitId != null)
         {
             //movement controls
-            if (IsManualControl)
+            if (CurrentMode == ControlModes.Manual)
             {
-                //controllableUnits[SelectedUnit].GetComponent<Rigidbody2D>().velocity = new Vector2(Mathf.Lerp(0, Input.GetAxis("Horizontal") * curSpeed, 0.8f),
-                //    Mathf.Lerp(0, Input.GetAxis("Vertical") * curSpeed, 0.8f));
-
-                controllableUnits[SelectedUnit].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
-                controllableUnits[SelectedUnit].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
-
-                //if (Input.GetKey("up")) //Up arrow key to move forwards
-                //    controllableUnits[SelectedUnit].MoveForward(curSpeed * Time.deltaTime);
-                //else if (Input.GetKey("down"))//Down arrow key to move backwards
-                //    controllableUnits[SelectedUnit].MoveForward(-curSpeed * Time.deltaTime);
-                //if (Input.GetKey("right")) //Right arrow key to turn right
-                //    controllableUnits[SelectedUnit].Rotate(-Vector3.forward * rotSpeed * Time.deltaTime);
-                //else if (Input.GetKey("left"))//Left arrow key to turn left
-                //    controllableUnits[SelectedUnit].Rotate(Vector3.forward * rotSpeed * Time.deltaTime);
+                controllableUnits[SelectedUnitId].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
+                controllableUnits[SelectedUnitId].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
             }
             else
             {
+                if (CurrentMode == ControlModes.Auto)
+                {
+                    if (controllableUnits[SelectedUnitId] is Payload)
+                        ProjectFormation();
+                    else
+                        ProjectPoint();                    
+                }
                 if (Input.GetMouseButtonDown(1))
                 {
                     Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                    StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits[SelectedUnit], mousePos2D));
+                    if (controllableUnits[SelectedUnitId] is Payload)
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+
+                            StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p"+i], projectedPositions[i]));
+                        }
+                    }
+                    else
+                        StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits[SelectedUnitId], mousePos2D));
                     //print(mousePos2D.ToString());
                 }
             }
