@@ -5,76 +5,38 @@ using Controllable;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using System.Collections.Specialized;
 
 public class OcuManager : Singleton<OcuManager>
 {
     /* Selected unit id */
-    private string _selectedUnit = null;
-    public string SelectedUnitId
+    private Unit _selectedUnit = null;
+    public Unit SelectedUnit
     {
         get { return _selectedUnit; }
         set
         {
             //check previous selection then clear and reset buffers if any
-            ocuLogger.Logv(string.Format("{0} selected", value));
             if (_selectedUnit != null && _selectedUnit != value)
             {
-                controllableUnits[_selectedUnit].SetSelectedColors(false);
-                //IsManualControl = false;
-                CurrentMode = ControlModes.NoSelection;
+                _selectedUnit.SetSelectedColors(false);
             }
-            
+
+            _selectedUnit = value;
             //if a unit is selected
             if (value != null)
             {
-                controllableUnits[value].SetSelectedColors(true);
-                UiManager.Instance.ShowSelectedDisplayFor(controllableUnits[value]);
-                CurrentMode = ControlModes.Auto;
+                ocuLogger.Logv(string.Format("{0} selected", value.id));
+                value.SetSelectedColors(true);
+                if (value is Payload)
+                    UiManager.Instance.ChangeState(UiManager.State.PayloadAuto);
+                else if (value is Beacon)
+                    UiManager.Instance.ChangeState(UiManager.State.BeaconAuto);
             }
             else //background is selected
             {
-                UiManager.Instance.ResetSelectedUnitDisplay();
-                UiManager.Instance.ShowSelectedDisplayFor(null);
-                CurrentMode = ControlModes.NoSelection;
+                ocuLogger.Logv("Nothing selected");
+                UiManager.Instance.ChangeState(UiManager.State.NoSelection);
             }
-            _selectedUnit = value;
-        }
-    }
-
-    /* Manual movement control flag for unit */
-    public enum ControlModes { NoSelection, Auto, Manual}
-    private ControlModes _currentMode;
-    public ControlModes CurrentMode
-    {
-        get { return _currentMode; }
-        set
-        {
-            ocuLogger.Logv(value.ToString() + " mode");
-            switch (value)
-            {
-                case ControlModes.Auto:
-                    projectionRend.gameObject.SetActive(true);
-                    break;
-                default:
-                    projectionRend.gameObject.SetActive(false);
-                    break;
-            }
-            _currentMode = value;
-        }
-    }
-    private bool _isManualControl = false;
-    public bool IsManualControl
-    {
-        get
-        {
-            return _isManualControl;
-        }
-        set
-        {
-            ocuLogger.Logv(value ? "Manual control enabled" : "Auto control mode");
-            projectionRend.gameObject.SetActive(!value);
-            _isManualControl = value;
         }
     }
 
@@ -83,7 +45,6 @@ public class OcuManager : Singleton<OcuManager>
     private Beacon beaconPrefab;
     [SerializeField]
     private Payload payloadPrefab;
-    //public List<Unit> controllableUnits = new List<Unit>();
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
 
     /* Test Values--TO REMOVE ON PRODUCTION */
@@ -235,7 +196,8 @@ public class OcuManager : Singleton<OcuManager>
         ocuLogger.Logv("Initializing--");
 
         //Clear UI from any test selections on scene
-        UiManager.Instance.ShowSelectedDisplayFor(null);
+        //UiManager.Instance.ShowSelectedDisplayFor(null);
+        UiManager.Instance.ChangeState(UiManager.State.NoSelection);
 
         //populate controllableUnits list
         //create units onscene
@@ -343,44 +305,49 @@ public class OcuManager : Singleton<OcuManager>
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
-                    SelectedUnitId = hit.collider.gameObject.GetComponent<Unit>().id;
+                    //SelectedUnitId = hit.collider.gameObject.GetComponent<Unit>().id;
+                    SelectedUnit = hit.collider.gameObject.GetComponent<Unit>();
                 }
-                else SelectedUnitId = null;
+                else 
+                { 
+                    //SelectedUnitId = null;
+                    SelectedUnit = null;
+                }
             }
         }
 
 
-        if (SelectedUnitId != null)
+        if (SelectedUnit != null)
         {
             //movement controls
-            if (CurrentMode == ControlModes.Manual)
+            if (UiManager.Instance.currentState == UiManager.State.BeaconManual || UiManager.Instance.currentState == UiManager.State.PayloadManual)
             {
-                controllableUnits[SelectedUnitId].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
-                controllableUnits[SelectedUnitId].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
+                //controllableUnits[SelectedUnitId].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
+                //controllableUnits[SelectedUnitId].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
+                SelectedUnit.MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
+                SelectedUnit.Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
             }
             else
             {
-                if (CurrentMode == ControlModes.Auto)
+                if (UiManager.Instance.currentState == UiManager.State.PayloadAuto)
                 {
-                    if (controllableUnits[SelectedUnitId] is Payload)
-                        ProjectFormation();
-                    else
-                        ProjectPoint();                    
-                }
-                if (Input.GetMouseButtonDown(1))
-                {
-                    Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                    if (controllableUnits[SelectedUnitId] is Payload)
+                    ProjectFormation();
+                    if (Input.GetMouseButtonDown(1))
                     {
                         for (int i = 0; i < 10; i++)
                         {
-
-                            StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p"+i], projectedPositions[i]));
+                            StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
                         }
                     }
-                    else
-                        StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits[SelectedUnitId], mousePos2D));
-                    //print(mousePos2D.ToString());
+                }
+                else if (UiManager.Instance.currentState == UiManager.State.BeaconAuto)
+                { 
+                    ProjectPoint();
+                    if (Input.GetMouseButtonDown(1))
+                    {
+                        Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                        StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D));
+                    }
                 }
             }
         }

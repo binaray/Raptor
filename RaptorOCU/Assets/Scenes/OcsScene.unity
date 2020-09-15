@@ -2888,6 +2888,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 766ca54ee92d7ad47ab8f47999ec49f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  helpDispText: {fileID: 875736427}
   settingsButton: {fileID: 0}
   stopAllButton: {fileID: 0}
   selectedUnitDisplay: {fileID: 795768352}
@@ -3515,7 +3516,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: d914efe4963f20b409cfef715c0115c9, type: 3}
-    m_FontSize: 11
+    m_FontSize: 10
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 1

@@ -7,7 +7,7 @@ using Controllable;
 public class UiManager : Singleton<UiManager>
 {
     //ContextualHelp
-    private Text helpDispText;
+    public Text helpDispText;
 
     //Ruler
 
@@ -36,64 +36,130 @@ public class UiManager : Singleton<UiManager>
     //LogDisp
 
 
-    private void Update()
+
+    public enum State
     {
-        if (selectedUnitRef != null)
+        NoSelection,
+        PayloadAuto,
+        PayloadManual,
+        BeaconAuto,
+        BeaconManual
+    }
+    public State currentState
+    {
+        get;
+        private set;
+    }
+
+    IEnumerator NoSelectionState()
+    {
+        helpDispText.text = @"-No Selection-
+Left click on any unit on scene for contextual actions";
+        selectionButtons.gameObject.SetActive(false);
+        unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "-";
+        unitText.text = "Nothing Selected";
+        unitPosition.text = "-";
+        movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Auto";
+        while (currentState == State.NoSelection)
         {
-            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
-            unitPosition.text = ((Vector2)selectedUnitRef.realPosition).ToString();
+            yield return null;
         }
     }
 
-    private Unit selectedUnitRef = null;
-    public void ShowSelectedDisplayFor(Unit unit)
+    IEnumerator PayloadAutoState()
     {
-        selectedUnitRef = unit;
-        if (unit is Beacon)
+        helpDispText.text = @"-Point to Formation Movement Mode-
+Units will form formation at selected position
+
+Q/W: Rotate Left/Right   A/S: Scale down/up
+Right click: Confirm";
+        selectionButtons.gameObject.SetActive(true);
+        unitText.text = "Payload " + OcuManager.Instance.SelectedUnit.id;
+        movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Auto";
+        OcuManager.Instance.projectionRend.gameObject.SetActive(true);
+        while (currentState == State.PayloadAuto)
         {
-            selectionButtons.gameObject.SetActive(true);
-            unitText.text = "Beacon " + unit.id;
+            yield return null;
         }
-        else if (unit is Payload)
+        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+        helpDispText.text = "";
+    }
+
+    IEnumerator PayloadManualState()
+    {
+        helpDispText.text = @"-Manual Movement Mode-
+WASD or up, down, left, right keys or joystick to move";
+        movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Manual";
+        while (currentState == State.PayloadManual)
         {
-            selectionButtons.gameObject.SetActive(true);
-            unitText.text = "Payload " + unit.id;
+            yield return null;
         }
-        else
+        helpDispText.text = "";
+    }
+
+    IEnumerator BeaconAutoState()
+    {
+        helpDispText.text = @"-Point to Point Movement Mode-
+Beacon will move to selected position
+
+Right click: Confirm";
+        selectionButtons.gameObject.SetActive(true);
+        unitText.text = "Beacon " + OcuManager.Instance.SelectedUnit.id;
+        movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Auto";
+        OcuManager.Instance.projectionRend.gameObject.SetActive(true);
+        while (currentState == State.BeaconAuto)
         {
-            selectionButtons.gameObject.SetActive(false);
-            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "-";
-            unitText.text = "Nothing Selected";
-            unitPosition.text = "-";
+            yield return null;
+        }
+        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+        helpDispText.text = "";
+    }
+
+    IEnumerator BeaconManualState()
+    {
+        helpDispText.text = @"-Manual Movement Mode-
+WASD or up, down, left, right keys or joystick to move";
+        movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Manual";
+        while (currentState == State.BeaconManual)
+        {
+            yield return null;
+        }
+        helpDispText.text = "";
+    }
+
+    public void ChangeState(State newState)
+    {
+        currentState = newState;
+        StartCoroutine(newState.ToString() + "State");
+        Debug.Log("Current state: " + currentState);
+    }
+
+    private void Update()
+    {
+        if (OcuManager.Instance.SelectedUnit != null)
+        {
+            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
+            unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
     }
 
     public void OnMovementModeButtonClick()
     {
-        bool setManual = !OcuManager.Instance.IsManualControl;
-        OcuManager.ControlModes controlMode =
-            (OcuManager.Instance.CurrentMode != OcuManager.ControlModes.Auto) 
-            ? OcuManager.ControlModes.Auto 
-            : OcuManager.ControlModes.Manual;
-        SetMovementControlMode(controlMode);
-        OcuManager.Instance.CurrentMode = controlMode;
-    }
-
-    private void SetMovementControlMode(OcuManager.ControlModes mode)
-    {
-        switch (mode)
+        if (currentState == State.BeaconAuto)
         {
-            case OcuManager.ControlModes.Auto:
-                movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Auto";
-                break;
-            case OcuManager.ControlModes.Manual:
-                movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Manual";
-                break;
+            ChangeState(State.BeaconManual);
         }
-    }
-
-    public void ResetSelectedUnitDisplay()
-    {
-        SetMovementControlMode(OcuManager.ControlModes.Auto);
+        else if (currentState == State.BeaconManual)
+        {
+            ChangeState(State.BeaconAuto);
+        }
+        else if (currentState == State.PayloadAuto)
+        {
+            ChangeState(State.PayloadManual);
+        }
+        else if (currentState == State.PayloadManual)
+        {
+            ChangeState(State.PayloadAuto);
+        }
     }
 }
