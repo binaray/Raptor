@@ -43,8 +43,14 @@ TagManager:
   - name: Background
     uniqueID: 3958379301
     locked: 0
+  - name: Gridline
+    uniqueID: 2547157963
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BoundaryLine
+    uniqueID: 770652303
     locked: 0
   - name: Controllable
     uniqueID: 2231386621

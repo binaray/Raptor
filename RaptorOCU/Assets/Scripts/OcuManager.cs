@@ -300,8 +300,9 @@ public class OcuManager : Singleton<OcuManager>
             }
             else
             {
+                //If no UI elements are selected- proceed to scene interaction
                 Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
+                print("Position in world: " + mousePos2D.ToString());
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
