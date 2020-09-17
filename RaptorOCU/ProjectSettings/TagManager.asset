@@ -49,12 +49,21 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: BoundaryLine
-    uniqueID: 770652303
-    locked: 0
   - name: Controllable
     uniqueID: 2231386621
     locked: 0
-  - name: Text
+  - name: Payload
+    uniqueID: 195265789
+    locked: 0
+  - name: PayloadText
+    uniqueID: 1911309283
+    locked: 0
+  - name: BoundaryLine
+    uniqueID: 770652303
+    locked: 0
+  - name: Beacon
+    uniqueID: 377578751
+    locked: 0
+  - name: BeaconText
     uniqueID: 3351710955
     locked: 0

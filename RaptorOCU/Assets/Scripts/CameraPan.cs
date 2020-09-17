@@ -17,7 +17,7 @@ public class CameraPan : MonoBehaviour
     private Transform gridlineRenderTransform;
     Vector2 lowerBound;
     Vector2 upperBound;
-    float gridlineStep = 1.0f;
+    float gridlineStep = 2.0f;
 
     void MoveCam()
     {
