@@ -49,7 +49,9 @@ public class CameraPan : MonoBehaviour
     {
         Vector2 newLowerBound = Camera.main.ScreenToWorldPoint(Vector2.zero);
         newLowerBound.x = Mathf.Floor(newLowerBound.x);
+        newLowerBound.x = newLowerBound.x - (newLowerBound.x % gridlineStep);
         newLowerBound.y = Mathf.Floor(newLowerBound.y);
+        newLowerBound.y = newLowerBound.y - (newLowerBound.y % gridlineStep);
         if (newLowerBound == lowerBound) return;
 
         lowerBound = newLowerBound;
@@ -76,10 +78,10 @@ public class CameraPan : MonoBehaviour
         }
 
         //Destroy unused lines
-        //while (gridlineRenderTransform.childCount > childNo)
-        //{
-        //    Destroy(gridlineRenderTransform.GetChild(gridlineRenderTransform.childCount - 1));
-        //}
+        for (int i = gridlineRenderTransform.childCount; i > childNo; i--)
+        {
+            Destroy(gridlineRenderTransform.GetChild(i - 1).gameObject);
+        }
     }
 
     private void Start()

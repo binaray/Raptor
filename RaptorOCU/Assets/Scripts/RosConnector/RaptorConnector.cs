@@ -9,12 +9,13 @@ using nav_msgs = RosSharp.RosBridgeClient.Messages.Navigation;
 using rosapi = RosSharp.RosBridgeClient.Services.RosApi;
 //using System.Diagnostics;
 using RosSharp.RosBridgeClient.Services;
+using RosSharp.RosBridgeClient.Messages;
 
-public class RaptorConnector : MonoBehaviour
+public class RaptorConnector : Singleton<RaptorConnector>
 {
     public int Timeout = 10;
     public RosSocket.SerializerEnum Serializer;
-    private RosSocket rosSocket;
+    public RosSocket rosSocket;
     public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
 
     private ManualResetEvent isConnected = new ManualResetEvent(false);
@@ -24,18 +25,21 @@ public class RaptorConnector : MonoBehaviour
 
     void Awake()
     {
+        ocuLogger = OcuLogger.Instance;
         new Thread(ConnectAndWait).Start();
     }
     void Start()
     {
-        ocuLogger = OcuLogger.Instance;
         //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
         //Subscribe("/chatter");
         //OdomSubscribe("/position");
         CallService();
     }
-    private void ConnectAndWait()
+
+    /*-- Ros socket initializers and handlers --*/
+    public void ConnectAndWait()
     {
+        ocuLogger.Logw("--Connecting to ROS--");
         rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
 
         if (!isConnected.WaitOne(Timeout * 1000))
@@ -65,11 +69,11 @@ public class RaptorConnector : MonoBehaviour
         rosSocket.Close();
     }
 
+    /*-- Subscription handlers --*/
     public void OdomSubscribe(string id)
     {
         subscriptionId = rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
     }
-
     private void OdomSubscriptionHandler(nav_msgs.Odometry odom)
     {
         //UnityEngine.Debug.Log(string.Format("Unit pos: ({0},{1})\n" +
@@ -77,17 +81,17 @@ public class RaptorConnector : MonoBehaviour
         //    odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z));
     }
 
-    public void Subscribe(string id)
-    {
-        subscriptionId = rosSocket.Subscribe<std_msgs.String>(id, SubscriptionHandler);
-    }
+    //public void Subscribe(string id)
+    //{
+    //    subscriptionId = rosSocket.Subscribe<std_msgs.String>(id, SubscriptionHandler);
+    //}
+    //private void SubscriptionHandler(std_msgs.String message)
+    //{
+    //    ocuLogger.Logv("Message received!");
+    //    ocuLogger.Logv(message.data);
+    //}
 
-    private void SubscriptionHandler(std_msgs.String message)
-    {
-        ocuLogger.Logv("Message received!");
-        ocuLogger.Logv(message.data);
-    }
-
+    /*-- Service client handlers --*/
     public void CallService()
     {
         ocuLogger.Logv("Calling Service");
@@ -100,7 +104,6 @@ public class RaptorConnector : MonoBehaviour
         //rosSocket.CallService<AddTwoIntsRequest, AddTwoIntsResponse>("/add_two_ints", ServiceCallHandler, request);
         //rosSocket.CallService<rosapi.GetParamRequest, rosapi.GetParamResponse>("/rosapi/get_param", ServiceCallHandler, new rosapi.GetParamRequest("/rosdistro", "default"));
     }
-
     private void ServiceCallHandler(MoveToPosResponse message)
     {
         //UnityEngine.Debug.Log("ROS distro: " + message.value);

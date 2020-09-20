@@ -15,6 +15,8 @@ public class UiManager : Singleton<UiManager>
     //Settings
     [SerializeField]
     private GameObject settingsPage;
+    [SerializeField]
+    private InputField ipAddressText;
 
     //GlobalCmds
     [SerializeField]
@@ -82,6 +84,7 @@ Left click on any unit on scene for contextual actions";
         unitPosition.text = "-";
         //movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Auto";
         settingsPage.SetActive(true);
+        ipAddressText.text = RaptorConnector.Instance.RosBridgeServerUrl;
         while (currentState == State.SettingsPage)
         {
             yield return null;
@@ -204,6 +207,13 @@ WASD or up, down, left, right keys or joystick to move";
             unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
             unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
+    }
+
+    public void SettingsChangeRosAddressButton()
+    {
+        RaptorConnector.Instance.rosSocket.Close();
+        RaptorConnector.Instance.RosBridgeServerUrl = ipAddressText.text;
+        new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
     }
 
     public void ChangeButtonState(GameObject button, bool state)
