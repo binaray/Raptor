@@ -38,7 +38,7 @@ public class OcuLogger : Singleton<OcuLogger>
             Destroy(tempText.gameObject);
             textItems.Remove(tempText);
         }
-        GameObject newText = Instantiate<GameObject>(textTemplate);
+        GameObject newText = Instantiate(textTemplate);
         newText.SetActive(true);
         newText.GetComponent<OcuLogItem>().SetText(message, color);
         newText.transform.SetParent(textTemplate.transform.parent, false);

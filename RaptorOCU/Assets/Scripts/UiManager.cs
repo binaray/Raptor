@@ -213,7 +213,8 @@ WASD or up, down, left, right keys or joystick to move";
     {
         RaptorConnector.Instance.rosSocket.Close();
         RaptorConnector.Instance.RosBridgeServerUrl = ipAddressText.text;
-        new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
+        RaptorConnector.Instance.RosConnectionRoutine();
+        //new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
     }
 
     public void ChangeButtonState(GameObject button, bool state)

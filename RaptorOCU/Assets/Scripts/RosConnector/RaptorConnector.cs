@@ -23,28 +23,23 @@ public class RaptorConnector : Singleton<RaptorConnector>
 
     string subscriptionId = "";
 
-    void Awake()
-    {
-        ocuLogger = OcuLogger.Instance;
-        new Thread(ConnectAndWait).Start();
-    }
     void Start()
     {
-        //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
-        //Subscribe("/chatter");
-        //OdomSubscribe("/position");
-        CallService();
+        ocuLogger = OcuLogger.Instance;
+        RosConnectionRoutine();
     }
 
     /*-- Ros socket initializers and handlers --*/
-    public void ConnectAndWait()
+    public void RosConnectionRoutine() { StartCoroutine(ConnectAndWait()); }
+    IEnumerator ConnectAndWait()
     {
-        ocuLogger.Logw("--Connecting to ROS--");
+        ocuLogger.Logw("--Attempting to connect to ROS--");
         rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
-
-        if (!isConnected.WaitOne(Timeout * 1000))
-            ocuLogger.Loge("Failed to connect to RosBridge at: " + RosBridgeServerUrl);
+        yield return new WaitForSeconds(10f);
+        if (!isConnected.WaitOne(0))
+            ocuLogger.Loge("Failed to connect to RosBridge: " + RosBridgeServerUrl);
     }
+
     public static RosSocket ConnectToRos(string serverUrl, System.EventHandler onConnected = null, System.EventHandler onClosed = null, RosSocket.SerializerEnum serializer = RosSocket.SerializerEnum.JSON)
     {
         RosSharp.RosBridgeClient.Protocols.IProtocol protocol = new RosSharp.RosBridgeClient.Protocols.WebSocketSharpProtocol(serverUrl);
@@ -56,6 +51,12 @@ public class RaptorConnector : Singleton<RaptorConnector>
     {
         isConnected.Set();
         ocuLogger.Logw("Connected to RosBridge: " + RosBridgeServerUrl);
+        //Setup subscriptions and actions here
+
+        //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
+        //Subscribe("/chatter");
+        //OdomSubscribe("/position");
+        CallService();
     }
     private void OnClosed(object sender, System.EventArgs e)
     {
@@ -95,6 +96,11 @@ public class RaptorConnector : Singleton<RaptorConnector>
     public void CallService()
     {
         ocuLogger.Logv("Calling Service");
+        if (!isConnected.WaitOne(0))
+        {
+            ocuLogger.Loge("Not connected to ROS");
+            return;
+        }
         nav_msgs.Odometry pos = new nav_msgs.Odometry();
         pos.pose.pose.position.x = 0.05f;
         pos.pose.pose.position.y = 1;
