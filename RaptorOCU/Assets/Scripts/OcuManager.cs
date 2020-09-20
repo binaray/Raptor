@@ -46,6 +46,10 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private Payload payloadPrefab;
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
+    [SerializeField]
+    private GameObject payloadDispTemplate;
+    [SerializeField]
+    private GameObject beaconGuiTemplate;
 
     /* Test Values--TO REMOVE ON PRODUCTION */
     [SerializeField]
@@ -204,10 +208,8 @@ public class OcuManager : Singleton<OcuManager>
         for (int i=0; i < beaconCount; i++)
         {
             string id = string.Format("b{0}", i);
-            Beacon b = Instantiate<Beacon>(beaconPrefab);
-            b.id = id;
-            b.num = i;
-            b.realPosition = new Vector3(i%2*5, i/2*5, 0);
+            Beacon b = Instantiate(beaconPrefab);
+            b.Init(id, i, new Vector3(i%2*5, i/2*5, 0));
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);
             beaconIds.Add(id);
@@ -216,10 +218,12 @@ public class OcuManager : Singleton<OcuManager>
         for (int i = 0; i < payloadCount; i++)
         {
             string id = string.Format("p{0}", i);
-            Payload p = Instantiate<Payload>(payloadPrefab);
-            p.id = id;
-            p.num = i;
-            p.realPosition = new Vector3(i, 3, 0);
+            Payload p = Instantiate(payloadPrefab);
+            GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
+            newPayloadDisp.SetActive(true);
+            newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+            p.payloadDisplay = newPayloadDisp;
+            p.Init(id, i, new Vector3(i, 3, 0));
             ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
             controllableUnits.Add(id, p);
         }

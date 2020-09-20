@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using nav_msgs = RosSharp.RosBridgeClient.Messages.Navigation;
 
 namespace Controllable
 {
@@ -20,6 +21,9 @@ namespace Controllable
         //identification values
         protected string _id;
         private int _num = -1;
+
+        //ROS connection params
+        string subscriptionId = "";
 
         [ReadOnly]
         public Status status;
@@ -62,10 +66,13 @@ namespace Controllable
 
         private Transform spriteTransform;
 
-        public virtual void Init()
+        public virtual void Init(string id, int num, Vector3 realPos)
         {
             spriteTransform = transform.GetChild(0);
             SetSelectedColors(false);
+            this.id = id;
+            this.num = num;
+            realPosition = realPos;
         }
 
         public virtual void SetSelectedColors(bool isSelected)
@@ -81,6 +88,22 @@ namespace Controllable
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
             }
         }
+
+        /*-- SUBSCRIPTION HANDLERS TO IMPLEMENT --*/
+        public void OdomSubscribe(string id)
+        {
+            subscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
+        }
+        protected virtual void OdomSubscriptionHandler(nav_msgs.Odometry odom)
+        {
+            //UnityEngine.Debug.Log(string.Format("Unit pos: ({0},{1})\n" +
+            //    "orientation: ({2},{3})", odom.pose.pose.position.x, odom.pose.pose.position.y,
+            //    odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z));
+            realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
+            transform.rotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
+        }
+
+        /*-- MOVEMENT METHODS TO IMPLEMENT --*/
 
         /* Movement Test Methods -Do not use on production*/
         public void Rotate(Vector3 rotationVector)

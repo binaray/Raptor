@@ -7,7 +7,6 @@ using RosSharp.RosBridgeClient.Messages.Geometry;
 using std_msgs = RosSharp.RosBridgeClient.Messages.Standard;
 using nav_msgs = RosSharp.RosBridgeClient.Messages.Navigation;
 using rosapi = RosSharp.RosBridgeClient.Services.RosApi;
-//using System.Diagnostics;
 using RosSharp.RosBridgeClient.Services;
 using RosSharp.RosBridgeClient.Messages;
 
