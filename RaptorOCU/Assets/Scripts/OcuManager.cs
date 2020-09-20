@@ -28,9 +28,9 @@ public class OcuManager : Singleton<OcuManager>
                 ocuLogger.Logv(string.Format("{0} selected", value.id));
                 value.SetSelectedColors(true);
                 if (value is Payload)
-                    UiManager.Instance.ChangeState(UiManager.State.PayloadAuto);
+                    UiManager.Instance.ChangeState(UiManager.State.PayloadSelected);
                 else if (value is Beacon)
-                    UiManager.Instance.ChangeState(UiManager.State.BeaconAuto);
+                    UiManager.Instance.ChangeState(UiManager.State.BeaconSelected);
             }
             else //background is selected
             {
