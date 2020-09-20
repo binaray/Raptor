@@ -230,7 +230,7 @@ public class OcuManager : Singleton<OcuManager>
 
     float formationProjScale = 1;
     float degreeOffset = 0;
-    int operationalRobotCount = 10;  //TODO replace test value
+    int operationalRobotCount = 3;  //TODO replace test value
     Vector2[] projectedPositions = new Vector2[10];
     public Transform projectionRend;
     void ProjectFormation()
@@ -338,6 +338,7 @@ public class OcuManager : Singleton<OcuManager>
                         for (int i = 0; i < 10; i++)
                         {
                             StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
+                            ocuLogger.Logv(String.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }
                 }

@@ -30,8 +30,6 @@ public class UiManager : Singleton<UiManager>
     [SerializeField]
     private Text unitPosition;
     [SerializeField]
-    private Button movementModeButton;
-    [SerializeField]
     private Transform selectionButtons;
     [SerializeField]
     private GameObject pointToPointButton;
@@ -96,6 +94,8 @@ Left click on any unit on scene for contextual actions";
         helpDispText.text = @"-Payload " + OcuManager.Instance.SelectedUnit.id +" Selected-";
         selectionButtons.gameObject.SetActive(true);
         unitText.text = "Payload " + OcuManager.Instance.SelectedUnit.id;
+        pointToPointButton.transform.GetChild(0).GetComponent<Text>().text = "Point to\nFormation";
+        pointToPointButton.transform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_f");
 
         selectionButtons.gameObject.SetActive(true);
         while (currentState == State.PayloadSelected)
@@ -141,6 +141,8 @@ WASD or up, down, left, right keys or joystick to move";
         helpDispText.text = @"-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-";
         selectionButtons.gameObject.SetActive(true);
         unitText.text = "Beacon " + OcuManager.Instance.SelectedUnit.id;
+        pointToPointButton.transform.GetChild(0).GetComponent<Text>().text = "Point to\nPoint";
+        pointToPointButton.transform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_p");
 
         selectionButtons.gameObject.SetActive(true);
         while (currentState == State.BeaconSelected)
