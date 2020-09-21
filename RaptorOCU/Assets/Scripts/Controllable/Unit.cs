@@ -25,7 +25,7 @@ namespace Controllable
         //ROS connection params
         string subscriptionId = "";
 
-        [ReadOnly]
+        //[ReadOnlyAttribute]
         public Status status;
 
         /* Getter, setters*/
