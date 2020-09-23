@@ -14,7 +14,7 @@ namespace RosSharp.RosBridgeClient.Messages
 public class MoveBaseActionResult : Message
 {
 [JsonIgnore]
-public const string RosMessageName = "beginner_tutorials/MoveBaseActionResult";
+public const string RosMessageName = "move_base_msgs/MoveBaseActionResult";
 
 public Header header;
 public GoalStatus status;

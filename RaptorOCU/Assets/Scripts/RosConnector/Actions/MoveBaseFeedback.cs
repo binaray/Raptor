@@ -14,7 +14,7 @@ namespace RosSharp.RosBridgeClient.Messages
 public class MoveBaseFeedback : Message
 {
 [JsonIgnore]
-public const string RosMessageName = "beginner_tutorials/MoveBaseFeedback";
+public const string RosMessageName = "move_base_msgs/MoveBaseFeedback";
 
 public PoseStamped base_position;
 
