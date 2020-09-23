@@ -34,9 +34,14 @@ public class RaptorConnector : Singleton<RaptorConnector>
     {
         ocuLogger.Logw("--Attempting to connect to ROS--");
         rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(2f);
         if (!isConnected.WaitOne(0))
             ocuLogger.Loge("Failed to connect to RosBridge: " + RosBridgeServerUrl);
+        else
+        {
+            OcuManager.Instance.InitUnits();
+        }
+        yield return null;
     }
 
     public static RosSocket ConnectToRos(string serverUrl, System.EventHandler onConnected = null, System.EventHandler onClosed = null, RosSocket.SerializerEnum serializer = RosSocket.SerializerEnum.JSON)
@@ -51,11 +56,12 @@ public class RaptorConnector : Singleton<RaptorConnector>
         isConnected.Set();
         ocuLogger.Logw("Connected to RosBridge: " + RosBridgeServerUrl);
         //Setup subscriptions and actions here
+        
 
         //rosSocket = new RosSocket(new RosSharp.RosBridgeClient.Protocols.WebSocketNetProtocol(uri));
         //Subscribe("/chatter");
-        //OdomSubscribe("/position");
-        CallService();
+        
+        //CallService();
     }
     private void OnClosed(object sender, System.EventArgs e)
     {
@@ -73,23 +79,45 @@ public class RaptorConnector : Singleton<RaptorConnector>
     public void OdomSubscribe(string id)
     {
         subscriptionId = rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
+        ocuLogger.Logv("Subscribed to " + subscriptionId);
     }
     private void OdomSubscriptionHandler(nav_msgs.Odometry odom)
     {
-        //UnityEngine.Debug.Log(string.Format("Unit pos: ({0},{1})\n" +
-        //    "orientation: ({2},{3})", odom.pose.pose.position.x, odom.pose.pose.position.y,
-        //    odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z));
+        position = GetPosition(odom);
+        rotation = GetRotation(odom);
+        isMessageReceived = true;
     }
 
-    //public void Subscribe(string id)
-    //{
-    //    subscriptionId = rosSocket.Subscribe<std_msgs.String>(id, SubscriptionHandler);
-    //}
-    //private void SubscriptionHandler(std_msgs.String message)
-    //{
-    //    ocuLogger.Logv("Message received!");
-    //    ocuLogger.Logv(message.data);
-    //}
+    UnityEngine.Vector3 position;
+    UnityEngine.Quaternion rotation;
+    private bool isMessageReceived;
+    private void Update()
+    {
+        //if (isMessageReceived) ProcessMessage();
+    }
+
+    void ProcessMessage()
+    {
+        ocuLogger.Logv(string.Format("Unit pos: {0}\n" +
+            "orientation: {1}", position, rotation));
+    }
+
+    private UnityEngine.Vector3 GetPosition(nav_msgs.Odometry message)
+    {
+        return new UnityEngine.Vector3(
+            message.pose.pose.position.x,
+            message.pose.pose.position.y,
+            message.pose.pose.position.z);
+    }
+    private UnityEngine.Quaternion GetRotation(nav_msgs.Odometry message)
+    {
+        return new UnityEngine.Quaternion(
+            message.pose.pose.orientation.x,
+            message.pose.pose.orientation.y,
+            message.pose.pose.orientation.z,
+            message.pose.pose.orientation.w);
+    }
+
 
     /*-- Service client handlers --*/
     public void CallService()

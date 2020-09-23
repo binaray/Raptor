@@ -13,24 +13,28 @@ public class OcuLogger : Singleton<OcuLogger>
     public void Logv(string message)
     {
         print(message);
-        _LogText(message, Color.white);
+        GenTextRoutine(message, Color.white);
     }
 
     //warning
     public void Logw(string message)
     {
         Debug.LogWarning(message);
-        _LogText(message, Color.yellow);
+        GenTextRoutine(message, Color.yellow);
     }
 
     //error
     public void Loge(string message)
     {
         Debug.LogError(message);
-        _LogText(message, Color.red);
+        GenTextRoutine(message, Color.red);
     }
 
-    private void _LogText(string message, Color color)
+    void GenTextRoutine(string message, Color color)
+    {
+        StartCoroutine(_LogText(message, color));
+    }
+    private IEnumerator _LogText(string message, Color color)
     {
         if (textItems.Count >= 50)
         {
@@ -43,5 +47,6 @@ public class OcuLogger : Singleton<OcuLogger>
         newText.GetComponent<OcuLogItem>().SetText(message, color);
         newText.transform.SetParent(textTemplate.transform.parent, false);
         textItems.Add(newText.gameObject);
+        yield return null;
     }
 }

@@ -59,7 +59,7 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private int beaconCount = 4;
     [SerializeField]
-    private int payloadCount = 10;
+    private int payloadCount = 5;
 
     /* Scene graphical displays */
     [SerializeField]
@@ -197,19 +197,25 @@ public class OcuManager : Singleton<OcuManager>
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
-        ocuLogger.Logv("Initializing--");
 
         //Clear UI from any test selections on scene
         //UiManager.Instance.ShowSelectedDisplayFor(null);
         UiManager.Instance.ChangeState(UiManager.State.NoSelection);
 
+        m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
+        m_EventSystem = GetComponent<EventSystem>();
+    }
+
+    public void InitUnits()
+    {
+        ocuLogger.Logv("Initializing units from available Odometry data..");
         //populate controllableUnits list
         //create units onscene
-        for (int i=0; i < beaconCount; i++)
+        for (int i = 0; i < beaconCount; i++)
         {
             string id = string.Format("b{0}", i);
             Beacon b = Instantiate(beaconPrefab);
-            b.Init(id, i, new Vector3(i%2*5, i/2*5, 0));
+            b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0));
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);
             beaconIds.Add(id);
@@ -223,25 +229,24 @@ public class OcuManager : Singleton<OcuManager>
             newPayloadDisp.SetActive(true);
             newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
             p.payloadDisplay = newPayloadDisp;
-            p.Init(id, i, new Vector3(i, 3, 0));
+            p.Init(id, i, new Vector3(i + 1, 3, 0));
+            p.OdomSubscribe("/position");
+            //p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
             ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
             controllableUnits.Add(id, p);
         }
-
-        m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
-        m_EventSystem = GetComponent<EventSystem>();
     }
 
     float formationProjScale = 1;
     float degreeOffset = 0;
-    int operationalRobotCount = 3;  //TODO replace test value
+    int operationalRobotCount = 5;  //TODO replace test value
     Vector2[] projectedPositions = new Vector2[10];
     public Transform projectionRend;
     void ProjectFormation()
     {
-        if (Input.GetKey("q"))
+        if (Input.GetKey("w"))
             degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
-        else if (Input.GetKey("w"))
+        else if (Input.GetKey("q"))
             degreeOffset = (degreeOffset + 1) % 360;
 
         if (Input.GetKey("a"))
@@ -339,7 +344,7 @@ public class OcuManager : Singleton<OcuManager>
                     ProjectFormation();
                     if (Input.GetMouseButtonDown(1))
                     {
-                        for (int i = 0; i < 10; i++)
+                        for (int i = 0; i < operationalRobotCount; i++) //TODO: change operational robot count
                         {
                             StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
                             ocuLogger.Logv(String.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));

@@ -29,27 +29,8 @@ namespace Controllable
         public Status status;
 
         /* Getter, setters*/
-        public Vector3 realPosition
-        {
-            get { return _realPos; }
-            set
-            {
-                //TODO: translate real position to transform position
-                transform.position = value;
-                _realPos = value;
-            }
-        }
-        // may not be needed
-        public Quaternion realRotation
-        {
-            get { return _realRot; }
-            set
-            {
-                //TODO: translate real rotation to transform rotation
-                transform.rotation = value;
-                _realRot = value;
-            }
-        }
+        public Vector3 realPosition;
+        public Quaternion realRotation;
         public string id {
             get { return _id; }
             set { _id = value; }
@@ -65,6 +46,7 @@ namespace Controllable
 
 
         private Transform spriteTransform;
+        protected bool isMessageReceived;
 
         public virtual void Init(string id, int num, Vector3 realPos)
         {
@@ -90,17 +72,21 @@ namespace Controllable
         }
 
         /*-- SUBSCRIPTION HANDLERS TO IMPLEMENT --*/
+        protected void OdomUpdate()
+        {
+            transform.position = realPosition;
+            transform.rotation = realRotation;
+        }
         public void OdomSubscribe(string id)
         {
+            OcuLogger.Instance.Logv("Subscribing to: " + id);
             subscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
         }
         protected virtual void OdomSubscriptionHandler(nav_msgs.Odometry odom)
         {
-            //UnityEngine.Debug.Log(string.Format("Unit pos: ({0},{1})\n" +
-            //    "orientation: ({2},{3})", odom.pose.pose.position.x, odom.pose.pose.position.y,
-            //    odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z));
             realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
-            transform.rotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
+            realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
+            isMessageReceived = true;
         }
 
         /*-- MOVEMENT METHODS TO IMPLEMENT --*/

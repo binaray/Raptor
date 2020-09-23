@@ -20,7 +20,7 @@ public class MoveBaseActionClient
 
     public void SetupAction()
     {
-        string actionName = "MoveBaseAction" + raptorNum;
+        string actionName = "raptor1/move_base_simple";
         CancelPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Actionlib.GoalID>(actionName + "/cancel");
         GoalPublicationId = RaptorConnector.Instance.rosSocket.Advertise<MoveBaseActionGoal>(actionName + "/goal");
 

@@ -8798,9 +8798,9 @@ GameObject:
   - component: {fileID: 2135344958}
   - component: {fileID: 2135344957}
   - component: {fileID: 2135344956}
-  - component: {fileID: 2135344962}
   - component: {fileID: 2135344959}
   - component: {fileID: 2135344960}
+  - component: {fileID: 2135344961}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -8877,7 +8877,7 @@ MonoBehaviour:
   curSpeed: 5
   rotSpeed: 60
   beaconCount: 4
-  payloadCount: 10
+  payloadCount: 1
   boundaryLineRenderer: {fileID: 1892530628}
   projectionRend: {fileID: 108975057}
 --- !u!114 &2135344960
@@ -8893,7 +8893,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textTemplate: {fileID: 1968584928}
---- !u!114 &2135344962
+--- !u!114 &2135344961
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8907,7 +8907,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Timeout: 10
   Serializer: 0
-  RosBridgeServerUrl: ws://192.168.137.185:9090
+  RosBridgeServerUrl: ws://192.168.137.54:9090
 --- !u!1001 &1688453729733151636
 PrefabInstance:
   m_ObjectHideFlags: 0
