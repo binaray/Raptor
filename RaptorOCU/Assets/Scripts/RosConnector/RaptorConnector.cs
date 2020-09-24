@@ -16,6 +16,9 @@ public class RaptorConnector : Singleton<RaptorConnector>
     public RosSocket.SerializerEnum Serializer;
     public RosSocket rosSocket;
     public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
+    private enum BuildMode { UiTest, Prodution }
+    [SerializeField]
+    private BuildMode buildMode;
 
     private ManualResetEvent isConnected = new ManualResetEvent(false);
     private OcuLogger ocuLogger;
@@ -25,7 +28,10 @@ public class RaptorConnector : Singleton<RaptorConnector>
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
-        RosConnectionRoutine();
+        if (buildMode==BuildMode.UiTest)
+            OcuManager.Instance.InitUnits(true);
+        else if (buildMode==BuildMode.Prodution)
+            RosConnectionRoutine();
     }
 
     /*-- Ros socket initializers and handlers --*/

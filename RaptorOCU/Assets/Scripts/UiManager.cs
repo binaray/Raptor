@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Controllable;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using Controllable;
-using TMPro;
 
 public class UiManager : Singleton<UiManager>
 {
@@ -33,10 +31,11 @@ public class UiManager : Singleton<UiManager>
     private Text unitPosition;
     [SerializeField]
     private Transform selectionButtons;
-    [SerializeField]
-    private GameObject pointToPointButton;
-    [SerializeField]
-    private GameObject manualMovementButton;
+
+    //DynamicSelectionButtons
+    private Transform pointToPointButton;
+    private Transform pointToFormationButton;
+    private Transform manualMovementButton;
 
     //LogDisp
 
@@ -46,12 +45,10 @@ public class UiManager : Singleton<UiManager>
     {
         NoSelection,
         SettingsPage,
-        PayloadSelected,
-        PayloadAuto,
-        PayloadManual,
-        BeaconSelected,
-        BeaconAuto,
-        BeaconManual
+        UnitSelected,
+        PointToPoint,
+        PointToFormation,
+        ManualMovement
     }
     public State currentState
     {
@@ -92,22 +89,58 @@ Left click on any unit on scene for contextual actions";
         settingsPage.SetActive(false);
     }
 
-    IEnumerator PayloadSelectedState()
+    IEnumerator UnitSelectedState()
     {
-        helpDispText.text = @"-Payload " + OcuManager.Instance.SelectedUnit.id +" Selected-";
+        Unit selectedUnit = OcuManager.Instance.SelectedUnit;
         selectionButtons.gameObject.SetActive(true);
-        unitText.text = "Payload " + OcuManager.Instance.SelectedUnit.id;
-        pointToPointButton.transform.GetChild(0).GetComponent<Text>().text = "Point to\nFormation";
-        pointToPointButton.transform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_f");
+        if (selectedUnit is Payload)
+        {
+            helpDispText.text = @"-Payload " + selectedUnit.id + " Selected-";
+            unitText.text = "Payload " + selectedUnit.id;
+            pointToPointButton = selectionButtons.GetChild(0);
+            pointToFormationButton = selectionButtons.GetChild(1);
+            manualMovementButton = selectionButtons.GetChild(2);
 
-        selectionButtons.gameObject.SetActive(true);
-        while (currentState == State.PayloadSelected)
+            SetButtonType(pointToPointButton, State.PointToPoint);
+            SetButtonType(pointToFormationButton, State.PointToFormation);
+            SetButtonType(manualMovementButton, State.ManualMovement);
+        }
+        else if (selectedUnit is Beacon)
+        {
+            helpDispText.text = @"-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-";
+            unitText.text = "Beacon " + selectedUnit.id;
+            pointToPointButton = selectionButtons.GetChild(0);
+            manualMovementButton = selectionButtons.GetChild(1);
+            selectionButtons.GetChild(2).gameObject.SetActive(false);
+
+            SetButtonType(pointToPointButton, State.PointToPoint);
+            SetButtonType(manualMovementButton, State.ManualMovement);
+        }
+
+        while (currentState == State.UnitSelected)
         {
             yield return null;
         }
     }
 
-    IEnumerator PayloadAutoState()
+    IEnumerator PointToPointState()
+    {
+        helpDispText.text = @"-Point to Point Movement Mode-
+Beacon will move to selected position
+
+Right click: Confirm";
+
+        SetButtonState(pointToPointButton, true);
+        OcuManager.Instance.projectionRend.gameObject.SetActive(true);
+        while (currentState == State.PointToPoint)
+        {
+            yield return null;
+        }
+        SetButtonState(pointToPointButton, false);
+        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+    }
+
+    IEnumerator PointToFormationState()
     {
         helpDispText.text = @"-Point to Formation Movement Mode-
 Units will form formation at selected position
@@ -115,74 +148,30 @@ Units will form formation at selected position
 Q/W: Rotate Left/Right   A/S: Scale down/up
 Right click: Confirm";
 
-        ChangeButtonState(pointToPointButton, true);
+        SetButtonState(pointToFormationButton, true);
         OcuManager.Instance.projectionRend.gameObject.SetActive(true);
-        while (currentState == State.PayloadAuto)
+        while (currentState == State.PointToFormation)
         {
             yield return null;
         }
-        ChangeButtonState(pointToPointButton, false);
+        SetButtonState(pointToFormationButton, false);
         OcuManager.Instance.projectionRend.gameObject.SetActive(false);
     }
 
-    IEnumerator PayloadManualState()
+    IEnumerator ManualMovementState()
     {
         helpDispText.text = @"-Manual Movement Mode-
 WASD or up, down, left, right keys or joystick to move";
-        //movementModeButton.transform.GetChild(0).GetComponent<Text>().text = "Manual";
 
-        ChangeButtonState(manualMovementButton, true);
-        while (currentState == State.PayloadManual)
+        SetButtonState(manualMovementButton, true);
+        while (currentState == State.ManualMovement)
         {
             yield return null;
         }
-        ChangeButtonState(manualMovementButton, false);
+        SetButtonState(manualMovementButton, false);
     }
 
-    IEnumerator BeaconSelectedState()
-    {
-        helpDispText.text = @"-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-";
-        selectionButtons.gameObject.SetActive(true);
-        unitText.text = "Beacon " + OcuManager.Instance.SelectedUnit.id;
-        pointToPointButton.transform.GetChild(0).GetComponent<Text>().text = "Point to\nPoint";
-        pointToPointButton.transform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_p");
-
-        selectionButtons.gameObject.SetActive(true);
-        while (currentState == State.BeaconSelected)
-        {
-            yield return null;
-        }
-    }
-
-    IEnumerator BeaconAutoState()
-    {
-        helpDispText.text = @"-Point to Point Movement Mode-
-Beacon will move to selected position
-
-Right click: Confirm";
-
-        ChangeButtonState(pointToPointButton, true);
-        OcuManager.Instance.projectionRend.gameObject.SetActive(true);
-        while (currentState == State.BeaconAuto)
-        {
-            yield return null;
-        }
-        ChangeButtonState(pointToPointButton, false);
-        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
-    }
-
-    IEnumerator BeaconManualState()
-    {
-        helpDispText.text = @"-Manual Movement Mode-
-WASD or up, down, left, right keys or joystick to move";
-        ChangeButtonState(manualMovementButton, true);
-        while (currentState == State.BeaconManual)
-        {
-            yield return null;
-        }
-        ChangeButtonState(manualMovementButton, false);
-    }
-
+    /*-- State Changing methods --*/
     public void ChangeState(State newState)
     {
         currentState = newState;
@@ -200,6 +189,7 @@ WASD or up, down, left, right keys or joystick to move";
         ChangeState(State.SettingsPage);
     }
 
+    /*-- Realtime Ui updates --*/
     private void Update()
     {
         if (OcuManager.Instance.SelectedUnit != null)
@@ -217,59 +207,78 @@ WASD or up, down, left, right keys or joystick to move";
         //new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
     }
 
-    public void ChangeButtonState(GameObject button, bool state)
+    /*-- Helper and accessor methods --*/
+    public void SetButtonType(Transform buttonTransform, State state)
+    {
+        buttonTransform.GetComponent<Button>().onClick.RemoveAllListeners();
+        switch (state)
+        {
+            case State.PointToPoint:
+                buttonTransform.GetChild(0).GetComponent<Text>().text = "Point to\nPoint";
+                buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_p");
+                buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnPointToPointButtonClick(); });
+                break;
+            case State.PointToFormation:
+                buttonTransform.GetChild(0).GetComponent<Text>().text = "Point to\nFormation";
+                buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_f");
+                buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnPointToFormationButtonClick(); });
+                break;
+            case State.ManualMovement:
+                buttonTransform.GetChild(0).GetComponent<Text>().text = "Manual\nMovement";
+                buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/man_");
+                buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnManualMovementButtonClick(); });
+                break;
+        }
+    }
+    public void SetButtonState(Transform buttonTransform, bool state)
     {
         if (state)
         {
-            button.GetComponent<Image>().color = Color.white;
-            button.transform.GetChild(0).GetComponent<Text>().color = Color.black;
-            button.transform.GetChild(1).GetComponent<RawImage>().color = Color.black;
+            buttonTransform.GetComponent<Image>().color = Color.white;
+            buttonTransform.transform.GetChild(0).GetComponent<Text>().color = Color.black;
+            buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.black;
         }
         else
         {
-            button.GetComponent<Image>().color = Color.black;
-            button.transform.GetChild(0).GetComponent<Text>().color = Color.white;
-            button.transform.GetChild(1).GetComponent<RawImage>().color = Color.white;
+            buttonTransform.GetComponent<Image>().color = Color.black;
+            buttonTransform.transform.GetChild(0).GetComponent<Text>().color = Color.white;
+            buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.white;
         }
     }
 
+    /*-- Button Events --*/
     public void OnPointToPointButtonClick()
     {
-        if (currentState == State.BeaconAuto)
+        if (currentState == State.PointToPoint)
         {
-            ChangeState(State.BeaconSelected);
+            ChangeState(State.UnitSelected);
         }
-        else if (currentState == State.BeaconSelected)
+        else
         {
-            ChangeState(State.BeaconAuto);
+            ChangeState(State.PointToPoint);
         }
-        else if (currentState == State.PayloadAuto)
+    }
+        public void OnPointToFormationButtonClick()
+    {
+        if (currentState == State.PointToFormation)
         {
-            ChangeState(State.PayloadSelected);
+            ChangeState(State.UnitSelected);
         }
-        else if (currentState == State.PayloadSelected)
+        else
         {
-            ChangeState(State.PayloadAuto);
+            ChangeState(State.PointToFormation);
         }
     }
 
-    public void OnManualMovementModeButtonClick()
+    public void OnManualMovementButtonClick()
     {
-        if (currentState == State.BeaconSelected)
+        if (currentState == State.UnitSelected)
         {
-            ChangeState(State.BeaconManual);
+            ChangeState(State.ManualMovement);
         }
-        else if (currentState == State.BeaconManual)
+        else if (currentState == State.ManualMovement)
         {
-            ChangeState(State.BeaconSelected);
-        }
-        else if (currentState == State.PayloadSelected)
-        {
-            ChangeState(State.PayloadManual);
-        }
-        else if (currentState == State.PayloadManual)
-        {
-            ChangeState(State.PayloadSelected);
+            ChangeState(State.UnitSelected);
         }
     }
 }

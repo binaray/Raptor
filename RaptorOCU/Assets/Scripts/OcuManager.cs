@@ -27,10 +27,7 @@ public class OcuManager : Singleton<OcuManager>
             {
                 ocuLogger.Logv(string.Format("{0} selected", value.id));
                 value.SetSelectedColors(true);
-                if (value is Payload)
-                    UiManager.Instance.ChangeState(UiManager.State.PayloadSelected);
-                else if (value is Beacon)
-                    UiManager.Instance.ChangeState(UiManager.State.BeaconSelected);
+                UiManager.Instance.ChangeState(UiManager.State.UnitSelected);
             }
             else //background is selected
             {
@@ -206,11 +203,40 @@ public class OcuManager : Singleton<OcuManager>
         m_EventSystem = GetComponent<EventSystem>();
     }
 
-    public void InitUnits()
+    public void InitUnits(bool uiTestMode = false)
     {
         ocuLogger.Logv("Initializing units from available Odometry data..");
         //populate controllableUnits list
         //create units onscene
+
+        if (uiTestMode)
+        {
+            for (int i = 0; i < beaconCount; i++)
+            {
+                string id = string.Format("b{0}", i);
+                Beacon b = Instantiate(beaconPrefab);
+                b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0));
+                ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
+                controllableUnits.Add(id, b);
+                beaconIds.Add(id);
+            }
+
+            for (int i = 0; i < payloadCount; i++)
+            {
+                string id = string.Format("p{0}", i);
+                Payload p = Instantiate(payloadPrefab);
+                GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
+                newPayloadDisp.SetActive(true);
+                newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+                p.payloadDisplay = newPayloadDisp;
+                p.Init(id, i, new Vector3(i + 1, 3, 0));
+
+                ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
+                controllableUnits.Add(id, p);
+            }
+            return;
+        }
+
         for (int i = 0; i < beaconCount; i++)
         {
             string id = string.Format("b{0}", i);
@@ -330,7 +356,7 @@ public class OcuManager : Singleton<OcuManager>
         if (SelectedUnit != null)
         {
             //movement controls
-            if (UiManager.Instance.currentState == UiManager.State.BeaconManual || UiManager.Instance.currentState == UiManager.State.PayloadManual)
+            if (UiManager.Instance.currentState == UiManager.State.ManualMovement)
             {
                 //controllableUnits[SelectedUnitId].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
                 //controllableUnits[SelectedUnitId].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
@@ -339,7 +365,7 @@ public class OcuManager : Singleton<OcuManager>
             }
             else
             {
-                if (UiManager.Instance.currentState == UiManager.State.PayloadAuto)
+                if (UiManager.Instance.currentState == UiManager.State.PointToFormation)
                 {
                     ProjectFormation();
                     if (Input.GetMouseButtonDown(1))
@@ -347,11 +373,11 @@ public class OcuManager : Singleton<OcuManager>
                         for (int i = 0; i < operationalRobotCount; i++) //TODO: change operational robot count
                         {
                             StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
-                            ocuLogger.Logv(String.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
+                            ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }
                 }
-                else if (UiManager.Instance.currentState == UiManager.State.BeaconAuto)
+                else if (UiManager.Instance.currentState == UiManager.State.PointToPoint)
                 { 
                     ProjectPoint();
                     if (Input.GetMouseButtonDown(1))
