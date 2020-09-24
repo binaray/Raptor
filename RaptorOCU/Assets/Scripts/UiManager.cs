@@ -131,13 +131,14 @@ Beacon will move to selected position
 Right click: Confirm";
 
         SetButtonState(pointToPointButton, true);
+
         OcuManager.Instance.projectionRend.gameObject.SetActive(true);
         while (currentState == State.PointToPoint)
         {
             yield return null;
         }
         SetButtonState(pointToPointButton, false);
-        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+        if (currentState!=State.PointToFormation) OcuManager.Instance.projectionRend.gameObject.SetActive(false);
     }
 
     IEnumerator PointToFormationState()
@@ -155,7 +156,7 @@ Right click: Confirm";
             yield return null;
         }
         SetButtonState(pointToFormationButton, false);
-        OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+        if (currentState!=State.PointToPoint) OcuManager.Instance.projectionRend.gameObject.SetActive(false);
     }
 
     IEnumerator ManualMovementState()

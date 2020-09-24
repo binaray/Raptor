@@ -46,7 +46,7 @@ namespace Controllable
 
 
         private Transform spriteTransform;
-        protected bool isMessageReceived;
+        protected bool isMessageReceived = false;
 
         public virtual void Init(string id, int num, Vector3 realPos)
         {
@@ -102,6 +102,7 @@ namespace Controllable
         {
             Vector3 directionVector = spriteTransform.rotation * Vector3.up;
             realPosition += directionVector * forwardDelta;
+            transform.position = realPosition;
         }
 
         /* Movement Test Methods -Do not use on production*/
@@ -110,6 +111,7 @@ namespace Controllable
             Vector2 nextPos = Vector2.MoveTowards(transform.position, target, forwardDelta);
             //transform.position = nextPos;
             realPosition = nextPos;
+            transform.position = nextPos;
             spriteTransform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
         }
     }
