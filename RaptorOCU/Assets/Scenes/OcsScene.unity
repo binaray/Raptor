@@ -9049,6 +9049,7 @@ GameObject:
   - component: {fileID: 2135344959}
   - component: {fileID: 2135344960}
   - component: {fileID: 2135344961}
+  - component: {fileID: 2135344962}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -9156,7 +9157,21 @@ MonoBehaviour:
   Timeout: 10
   Serializer: 0
   RosBridgeServerUrl: ws://192.168.137.54:9090
-  buildMode: 0
+  buildMode: 1
+--- !u!114 &2135344962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2135344955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59cf7b1586a5755439e1a7c3e14c6945, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  raptorNum: 0
+  TimeStep: 0
 --- !u!1001 &1688453729733151636
 PrefabInstance:
   m_ObjectHideFlags: 0

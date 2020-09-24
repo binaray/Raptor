@@ -46,6 +46,18 @@ public class RaptorConnector : Singleton<RaptorConnector>
         else
         {
             OcuManager.Instance.InitUnits();
+            MoveBaseActionClient mb = GetComponent<MoveBaseActionClient>();
+            PoseStamped pose = new PoseStamped();
+            pose.header.frame_id = "raptor1/base_link";
+            pose.pose.position.x = 1;
+            pose.pose.position.y = 2;
+            pose.pose.position.z = 0;
+
+            pose.pose.orientation.w = 1;
+
+            mb.SetupAction();
+            mb.targetPose = pose;
+            mb.SendGoal();
         }
         yield return null;
     }

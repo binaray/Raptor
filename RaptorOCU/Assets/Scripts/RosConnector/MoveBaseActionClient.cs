@@ -1,8 +1,9 @@
 ﻿using RosSharp.RosBridgeClient;
 using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Geometry;
+using UnityEngine;
 
-public class MoveBaseActionClient
+public class MoveBaseActionClient : MonoBehaviour
 {
     public int raptorNum;
     public float TimeStep;
@@ -17,6 +18,16 @@ public class MoveBaseActionClient
     protected MoveBaseActionGoal ActionGoal;
     protected MoveBaseActionFeedback ActionFeedback;
     protected MoveBaseActionResult ActionResult;
+
+    bool dataRc = false;
+    private void Update()
+    {
+        if (dataRc)
+        {
+            print(ActionFeedback.feedback.base_position.pose.position.x);
+            print(ActionResult.status.text);
+        }
+    }
 
     public void SetupAction()
     {
@@ -40,10 +51,12 @@ public class MoveBaseActionClient
     void FeedbackCallback(MoveBaseActionFeedback feedback)
     {
         ActionFeedback = feedback;
+        dataRc = true;
     }
     void ResultCallback(MoveBaseActionResult result)
     {
         ActionResult = result;
+        dataRc = true;
     }
     void StatusCallback(RosSharp.RosBridgeClient.Messages.Actionlib.GoalStatusArray actionStatus)
     {
