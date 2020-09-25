@@ -3,6 +3,26 @@ using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Geometry;
 using UnityEngine;
 
+public enum Status{
+    PENDING = 0,    // The goal has yet to be processed by the action server
+    ACTIVE = 1,     // The goal is currently being processed by the action server
+    PREEMPTED = 2,  // The goal received a cancel request after it started executing
+                    //   and has since completed its execution (Terminal State)
+    SUCCEEDED = 3,  // The goal was achieved successfully by the action server (Terminal State)
+    ABORTED = 4,    // The goal was aborted during execution by the action server due
+                    //    to some failure (Terminal State)
+    REJECTED = 5,   // The goal was rejected by the action server without being processed,
+                    //    because the goal was unattainable or invalid (Terminal State)
+    PREEMPTING = 6, // The goal received a cancel request after it started executing
+                    //    and has not yet completed execution
+    RECALLING = 7,  // The goal received a cancel request before it started executing,
+                    //    but the action server has not yet confirmed that the goal is canceled
+    RECALLED = 8,   // The goal received a cancel request before it started executing
+                    //    and was successfully cancelled (Terminal State)
+    LOST = 9        // An action client can determine that a goal is LOST. This should not be
+                    //    sent over the wire by an action server
+}
+
 public class MoveBaseActionClient : MonoBehaviour
 {
     public int raptorNum;
@@ -25,19 +45,35 @@ public class MoveBaseActionClient : MonoBehaviour
         if (dataRc)
         {
             print(ActionFeedback.feedback.base_position.pose.position.x);
-            print(ActionResult.status.text);
+            print(((Status)ActionResult.status.status).ToString());
         }
     }
 
-    public void SetupAction()
+    public void SetupAction(int raptorNo)
     {
-        string actionName = "raptor1/move_base";
+        raptorNum = raptorNo;
+        string actionName = string.Format("raptor{0}/move_base", raptorNum);
         CancelPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Actionlib.GoalID>(actionName + "/cancel");
         GoalPublicationId = RaptorConnector.Instance.rosSocket.Advertise<MoveBaseActionGoal>(actionName + "/goal");
 
         RaptorConnector.Instance.rosSocket.Subscribe<RosSharp.RosBridgeClient.Messages.Actionlib.GoalStatusArray>(actionName + "/status", StatusCallback, (int)(TimeStep * 1000));
         RaptorConnector.Instance.rosSocket.Subscribe<MoveBaseActionFeedback>(actionName + "/feedback", FeedbackCallback, (int)(TimeStep * 1000));
         RaptorConnector.Instance.rosSocket.Subscribe<MoveBaseActionResult>(actionName + "/result", ResultCallback, (int)(TimeStep * 1000));
+    }
+    public void SetTargetPoseAndSendGoal(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
+    {
+        PoseStamped pose = new PoseStamped();
+        pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
+        pose.pose.position.x = position.x;
+        pose.pose.position.y = position.y;
+        pose.pose.position.z = position.z;
+
+        pose.pose.orientation.x = rotation.x;
+        pose.pose.orientation.y = rotation.y;
+        pose.pose.orientation.z = rotation.z;
+        pose.pose.orientation.w = rotation.w;
+        targetPose = pose;
+        SendGoal();
     }
     public void SendGoal()
     {

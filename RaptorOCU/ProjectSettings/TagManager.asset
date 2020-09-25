@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ControllableUnit
   - Ui
+  - PlannerUnit
   layers:
   - Default
   - TransparentFX

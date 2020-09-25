@@ -10,6 +10,7 @@ namespace Controllable
         /*Static constant reference vars*/
         public static Color beaconColor = new Color(0.41f, 1.00f, 0.96f);
         public static Color payloadColor = new Color(0.00f, 0.82f, 1.00f);
+        public static Color plannerColor = new Color(0.00f, 1.00f, 0.00f);
         public static Color focusedColor = Color.white;
         public static Color focusInvColor = Color.black;
 
@@ -44,7 +45,6 @@ namespace Controllable
             }
         }
 
-
         private Transform spriteTransform;
         protected bool isMessageReceived = false;
 
@@ -55,6 +55,7 @@ namespace Controllable
             this.id = id;
             this.num = num;
             realPosition = realPos;
+            transform.position = realPos;
         }
 
         public virtual void SetSelectedColors(bool isSelected)
@@ -87,6 +88,16 @@ namespace Controllable
             realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             isMessageReceived = true;
+        }
+        /*-- Move base action --*/
+        public void SetupMoveBaseAction(int num)
+        {
+            //TODO: HANDLE BEACON ID
+            GetComponent<MoveBaseActionClient>().SetupAction(num);
+        }
+        public void MoveTo(Vector3 position, Quaternion rotation)
+        {
+            GetComponent<MoveBaseActionClient>().SetTargetPoseAndSendGoal(position, rotation);
         }
 
         /*-- MOVEMENT METHODS TO IMPLEMENT --*/

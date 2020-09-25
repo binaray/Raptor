@@ -10,15 +10,15 @@ using rosapi = RosSharp.RosBridgeClient.Services.RosApi;
 using RosSharp.RosBridgeClient.Services;
 using RosSharp.RosBridgeClient.Messages;
 
+/*-- Built with reference to RosConnector script main changes are in handling unit initialization and using coroutines --*/
 public class RaptorConnector : Singleton<RaptorConnector>
 {
     public int Timeout = 10;
     public RosSocket.SerializerEnum Serializer;
     public RosSocket rosSocket;
     public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
-    private enum BuildMode { UiTest, Prodution }
-    [SerializeField]
-    private BuildMode buildMode;
+    public enum BuildMode { UiTest, Prodution }
+    public BuildMode buildMode;
 
     private ManualResetEvent isConnected = new ManualResetEvent(false);
     private OcuLogger ocuLogger;
@@ -46,18 +46,18 @@ public class RaptorConnector : Singleton<RaptorConnector>
         else
         {
             OcuManager.Instance.InitUnits();
-            MoveBaseActionClient mb = GetComponent<MoveBaseActionClient>();
-            PoseStamped pose = new PoseStamped();
-            pose.header.frame_id = "raptor1/base_link";
-            pose.pose.position.x = 1;
-            pose.pose.position.y = 2;
-            pose.pose.position.z = 0;
+            //MoveBaseActionClient mb = GetComponent<MoveBaseActionClient>();
+            //PoseStamped pose = new PoseStamped();
+            //pose.header.frame_id = "raptor1/base_link";
+            //pose.pose.position.x = 1;
+            //pose.pose.position.y = 2;
+            //pose.pose.position.z = 0;
 
-            pose.pose.orientation.w = 1;
+            //pose.pose.orientation.w = 1;
 
-            mb.SetupAction();
-            mb.targetPose = pose;
-            mb.SendGoal();
+            //mb.SetupAction(1);
+            //mb.targetPose = pose;
+            //mb.SendGoal();
         }
         yield return null;
     }
@@ -137,7 +137,7 @@ public class RaptorConnector : Singleton<RaptorConnector>
     }
 
 
-    /*-- Service client handlers --*/
+    /*-- Service client handlers (working test) --*/
     public void CallService()
     {
         ocuLogger.Logv("Calling Service");

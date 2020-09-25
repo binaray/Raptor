@@ -36,13 +36,43 @@ public class OcuManager : Singleton<OcuManager>
             }
         }
     }
+    private bool _isPlannerMode = false;
+    public bool IsPlannerMode
+    {
+        get { return _isPlannerMode; }
+        set
+        {
+            if (value == true && _isPlannerMode == false)
+            {
+                for (int i=0; i < payloadCount; i++)
+                {
+                    string pid = string.Format("p{0}", i);
+                    string id = string.Format("v{0}", i);
+                    PlannerUnit p = Instantiate(plannerUnitPrefab);
+                    p.parentUnit = controllableUnits[pid];
+                    p.Init(id, i, p.parentUnit.realPosition);
+                    plannerUnits.Add(p);
+                }
+            }
+            else if (value == false && _isPlannerMode == true)
+            {
+                foreach (PlannerUnit p in plannerUnits) Destroy(p.gameObject);
+                plannerUnits = new List<PlannerUnit>();
+            }
+            SelectedUnit = null;
+            _isPlannerMode = value;
+        }
+    }
 
     /* Unit prefabs and reference container */
     [SerializeField]
     private Beacon beaconPrefab;
     [SerializeField]
     private Payload payloadPrefab;
+    [SerializeField]
+    private PlannerUnit plannerUnitPrefab;
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
+    private List<PlannerUnit> plannerUnits = new List<PlannerUnit>();
     [SerializeField]
     private GameObject payloadDispTemplate;
     [SerializeField]
@@ -82,8 +112,7 @@ public class OcuManager : Singleton<OcuManager>
     /* Convex hull algorithm for boundary drawer */
     HashSet<string> beaconIds = new HashSet<string>();
     Stack<Vector2> boundaryDrawPoints;
-    Vector2 minPoint = new Vector2();
-    
+    Vector2 minPoint = new Vector2();    
     // A utility function to find next to top in a stack 
     Vector2 NextToTop(Stack<Vector2> S)
     {
@@ -91,8 +120,7 @@ public class OcuManager : Singleton<OcuManager>
         Vector2 res = S.Peek();
         S.Push(p);
         return res;
-    }
-    
+    }    
     // To find orientation of ordered triplet (p, q, r). 
     // The function returns following values 
     // 0 --> p, q and r are colinear 
@@ -106,7 +134,6 @@ public class OcuManager : Singleton<OcuManager>
         if (val == 0) return 0;  // colinear 
         return (val > 0) ? 1 : 2; // clock or counterclock wise 
     }
-
     // A function used by library function qsort() to sort an array of 
     // points with respect to the first point 
     int ComparePolarAngle(Vector2 p1, Vector2 p2) 
@@ -117,7 +144,6 @@ public class OcuManager : Singleton<OcuManager>
             return (Vector2.Distance(minPoint, p2) >= Vector2.Distance(minPoint, p1))? -1 : 1; 
         return (o == 2)? -1: 1; 
     }
-
     void GrahamScanBeacons()
     {
         List<Vector2> points = new List<Vector2>();
@@ -255,9 +281,12 @@ public class OcuManager : Singleton<OcuManager>
             newPayloadDisp.SetActive(true);
             newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
             p.payloadDisplay = newPayloadDisp;
+            
             p.Init(id, i, new Vector3(i + 1, 3, 0));
-            p.OdomSubscribe("/position");
-            //p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
+            //p.OdomSubscribe("/position");
+            p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
+            p.SetupMoveBaseAction(i + 1);
+
             ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
             controllableUnits.Add(id, p);
         }
@@ -265,11 +294,12 @@ public class OcuManager : Singleton<OcuManager>
 
     float formationProjScale = 1;
     float degreeOffset = 0;
-    int operationalRobotCount = 5;  //TODO replace test value
+    int operationalRobotCount;
     Vector2[] projectedPositions = new Vector2[10];
     public Transform projectionRend;
     void ProjectFormation()
     {
+        operationalRobotCount = payloadCount; //TODO replace with real operational robot count
         if (Input.GetKey("w"))
             degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
         else if (Input.GetKey("q"))
@@ -318,6 +348,11 @@ public class OcuManager : Singleton<OcuManager>
         projectionRend.GetChild(1).position = mousePos2D;
     }
 
+    public void ExecutePlanForAllUnits()
+    {
+        foreach (PlannerUnit p in plannerUnits) p.MoveParentToPlan();
+    }
+
     void Update()
     {
         //left mouse button as selector button to select or deselect at anytime
@@ -331,22 +366,26 @@ public class OcuManager : Singleton<OcuManager>
             m_Raycaster.Raycast(m_PointerEventData, results);
             if (results.Count > 0)
             {
-                Debug.Log("Hit " + results[0].gameObject.layer);
+                //Debug.Log("Hit " + results[0].gameObject.layer);
             }
             else
             {
                 //If no UI elements are selected- proceed to scene interaction
                 Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                print("Position in world: " + mousePos2D.ToString());
+                //print("Position in world: " + mousePos2D.ToString());
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
-                    //SelectedUnitId = hit.collider.gameObject.GetComponent<Unit>().id;
-                    SelectedUnit = hit.collider.gameObject.GetComponent<Unit>();
+                    if ((IsPlannerMode && hit.collider.tag == "PlannerUnit")
+                        || (!IsPlannerMode && hit.collider.tag == "ControllableUnit"))
+                    {
+                        SelectedUnit = hit.collider.gameObject.GetComponent<Unit>();
+                    }
+                    else
+                        SelectedUnit = null;
                 }
-                else 
-                { 
-                    //SelectedUnitId = null;
+                else
+                {
                     SelectedUnit = null;
                 }
             }
@@ -354,12 +393,10 @@ public class OcuManager : Singleton<OcuManager>
 
 
         if (SelectedUnit != null)
-        {
+        {            
             //movement controls
             if (UiManager.Instance.currentState == UiManager.State.ManualMovement)
             {
-                //controllableUnits[SelectedUnitId].MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
-                //controllableUnits[SelectedUnitId].Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
                 SelectedUnit.MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
                 SelectedUnit.Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
             }
@@ -372,7 +409,10 @@ public class OcuManager : Singleton<OcuManager>
                     {
                         for (int i = 0; i < operationalRobotCount; i++) //TODO: change operational robot count
                         {
-                            StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
+                            if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
+                                StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
+                            else
+                                controllableUnits["p" + i].MoveTo(projectedPositions[i], new Quaternion(0, 0, 0, 1)); 
                             ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }

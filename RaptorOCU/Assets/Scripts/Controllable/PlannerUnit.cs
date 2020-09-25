@@ -4,31 +4,35 @@ using UnityEngine;
 
 namespace Controllable
 {
-    public class Payload : Unit
+    public class PlannerUnit : Unit
     {
-        public GameObject payloadDisplay;
-        private TMPro.TextMeshPro posText;
-
-        private void Awake()
+        public Unit parentUnit;
+        
+        // Start is called before the first frame update
+        void Start()
         {
-            posText = transform.GetChild(2).GetChild(0).GetComponent<TMPro.TextMeshPro>();
+
         }
 
-        private void Update()
+        // Update is called once per frame
+        void Update()
         {
-            if (isMessageReceived)
-            {
-                OdomUpdate();
-                //OcuLogger.Instance.Logv("odom updated"+Time.realtimeSinceStartup);
-                //TODO: timeout and set flag to false if no message received for x seconds
-                posText.text = ((Vector2)realPosition).ToString();
-            }
+
+        }
+
+        public void MoveParentToPlan()
+        {
+            //TODO: action here
+            parentUnit.transform.position = (Vector2)transform.position;
+            parentUnit.transform.rotation = transform.rotation;
+            parentUnit.realPosition = (Vector2)transform.position;
+            parentUnit.realRotation = transform.rotation;
         }
 
         public override void Init(string id, int raptorNum, Vector3 realPos)
         {
+            realPos.z = -1;
             base.Init(id, raptorNum, realPos);
-            payloadDisplay.GetComponent<PayloadDisplayItem>().SetText(id);
         }
 
         public override void SetSelectedColors(bool isSelected)
@@ -43,8 +47,7 @@ namespace Controllable
             {
                 transform.GetChild(0).GetComponent<SpriteRenderer>().color = focusedColor;
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusInvColor;
-                payloadDisplay.GetComponent<PayloadDisplayItem>().SetSelectionDisplay(true);
-                posText.color = focusedColor;
+                //posText.color = focusedColor;
                 colorKey[0].color = focusedColor;
                 colorKey[0].time = 0.0f;
                 colorKey[1].color = focusedColor;
@@ -56,13 +59,12 @@ namespace Controllable
             }
             else
             {
-                transform.GetChild(0).GetComponent<SpriteRenderer>().color = payloadColor;
+                transform.GetChild(0).GetComponent<SpriteRenderer>().color = plannerColor;
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
-                payloadDisplay.GetComponent<PayloadDisplayItem>().SetSelectionDisplay(false);
-                posText.color = payloadColor;
-                colorKey[0].color = payloadColor;
+                //posText.color = payloadColor;
+                colorKey[0].color = plannerColor;
                 colorKey[0].time = 0.0f;
-                colorKey[1].color = payloadColor;
+                colorKey[1].color = plannerColor;
                 colorKey[1].time = 1.0f;
                 alphaKey[0].alpha = 1.0f;
                 alphaKey[0].time = 0.0f;
@@ -71,11 +73,6 @@ namespace Controllable
             }
             gradient.SetKeys(colorKey, alphaKey);
             transform.GetChild(2).GetComponent<LineRenderer>().colorGradient = gradient;
-        }
-
-        private void OnDestroy()
-        {
-            Destroy(payloadDisplay);
         }
     }
 }

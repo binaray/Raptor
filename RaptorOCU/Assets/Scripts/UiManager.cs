@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 public class UiManager : Singleton<UiManager>
 {
+    //Planner gui graphic overlay
+    [SerializeField]
+    private GameObject plannerOverlay;
+    [SerializeField]
+    private Button executePlanButton;
+
     //ContextualHelp
     public Text helpDispText;
 
@@ -19,6 +25,12 @@ public class UiManager : Singleton<UiManager>
     //GlobalCmds
     [SerializeField]
     private Button stopAllButton;
+    [SerializeField]
+    private Transform plannerModeButtonTransform;
+    [SerializeField]
+    private Button savePlanButton;
+    [SerializeField]
+    private Button loadPlanButton;
 
     //SelectedUnitDisp
     [SerializeField]
@@ -31,6 +43,18 @@ public class UiManager : Singleton<UiManager>
     private Text unitPosition;
     [SerializeField]
     private Transform selectionButtons;
+
+    //ConfirmationDialogueBox
+    [SerializeField]
+    private GameObject confirmationDialogue;
+    [SerializeField]
+    private Text dialogueHeader;
+    [SerializeField]
+    private Text dialogueText;
+    [SerializeField]
+    private Button noButton;
+    [SerializeField]
+    private Button yesButton;
 
     //DynamicSelectionButtons
     private Transform pointToPointButton;
@@ -116,6 +140,18 @@ Left click on any unit on scene for contextual actions";
             SetButtonType(pointToPointButton, State.PointToPoint);
             SetButtonType(manualMovementButton, State.ManualMovement);
         }
+        else if (selectedUnit is PlannerUnit)
+        {
+            helpDispText.text = @"-Payload Planner" + selectedUnit.id + " Selected-";
+            unitText.text = "Payload Planner" + selectedUnit.id;
+            pointToPointButton = selectionButtons.GetChild(0);
+            pointToFormationButton = selectionButtons.GetChild(1);
+            manualMovementButton = selectionButtons.GetChild(2);
+
+            SetButtonType(pointToPointButton, State.PointToPoint);
+            SetButtonType(pointToFormationButton, State.PointToFormation);
+            SetButtonType(manualMovementButton, State.ManualMovement);
+        }
 
         while (currentState == State.UnitSelected)
         {
@@ -191,6 +227,17 @@ WASD or up, down, left, right keys or joystick to move";
     }
 
     /*-- Realtime Ui updates --*/
+    private void Start()
+    {
+        executePlanButton.onClick.AddListener(() => { OcuManager.Instance.ExecutePlanForAllUnits(); });
+        plannerModeButtonTransform.GetComponent<Button>().onClick.AddListener(()=>
+        {
+            OcuManager.Instance.IsPlannerMode = !OcuManager.Instance.IsPlannerMode;
+            plannerOverlay.SetActive(OcuManager.Instance.IsPlannerMode);
+            SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
+                (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
+        });
+    }
     private void Update()
     {
         if (OcuManager.Instance.SelectedUnit != null)
@@ -231,19 +278,22 @@ WASD or up, down, left, right keys or joystick to move";
                 break;
         }
     }
-    public void SetButtonState(Transform buttonTransform, bool state)
+    public void SetButtonState(Transform buttonTransform, bool state, string newText = null)
     {
-        if (state)
+        if (newText != null) buttonTransform.transform.GetChild(0).GetComponent<Text>().text = newText;
+            if (state)
         {
             buttonTransform.GetComponent<Image>().color = Color.white;
             buttonTransform.transform.GetChild(0).GetComponent<Text>().color = Color.black;
-            buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.black;
+            if (buttonTransform.childCount > 1) 
+                buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.black;
         }
         else
         {
             buttonTransform.GetComponent<Image>().color = Color.black;
             buttonTransform.transform.GetChild(0).GetComponent<Text>().color = Color.white;
-            buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.white;
+            if (buttonTransform.childCount > 1) 
+                buttonTransform.transform.GetChild(1).GetComponent<RawImage>().color = Color.white;
         }
     }
 
@@ -259,7 +309,7 @@ WASD or up, down, left, right keys or joystick to move";
             ChangeState(State.PointToPoint);
         }
     }
-        public void OnPointToFormationButtonClick()
+    public void OnPointToFormationButtonClick()
     {
         if (currentState == State.PointToFormation)
         {
@@ -270,7 +320,6 @@ WASD or up, down, left, right keys or joystick to move";
             ChangeState(State.PointToFormation);
         }
     }
-
     public void OnManualMovementButtonClick()
     {
         if (currentState == State.UnitSelected)
