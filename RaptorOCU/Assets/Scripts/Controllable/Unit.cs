@@ -99,7 +99,10 @@ namespace Controllable
         {
             GetComponent<MoveBaseActionClient>().SetTargetPoseAndSendGoal(position, rotation);
         }
-
+        public void CancelMoveBaseAction()
+        {
+            GetComponent<MoveBaseActionClient>().CancelGoal();
+        }
         /*-- MOVEMENT METHODS TO IMPLEMENT --*/
 
         /* Movement Test Methods -Do not use on production*/
@@ -123,7 +126,7 @@ namespace Controllable
             //transform.position = nextPos;
             realPosition = nextPos;
             transform.position = nextPos;
-            spriteTransform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
+            spriteTransform.rotation = Quaternion.RotateTowards(new Quaternion(0, 0, 0, 1), Quaternion.FromToRotation(transform.position, target), rotationDelta);
         }
     }
 

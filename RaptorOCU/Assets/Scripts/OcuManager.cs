@@ -296,6 +296,7 @@ public class OcuManager : Singleton<OcuManager>
     float degreeOffset = 0;
     int operationalRobotCount;
     Vector2[] projectedPositions = new Vector2[10];
+    Quaternion[] projectedRotations = new Quaternion[10];
     public Transform projectionRend;
     void ProjectFormation()
     {
@@ -339,18 +340,36 @@ public class OcuManager : Singleton<OcuManager>
             p.y = ynew + mousePos2D.y;
             projectionRend.GetChild(n).position = p;
             projectedPositions[n] = p;
+            projectedRotations[n] = projectionRend.GetChild(n).rotation;
         }
     }
     void ProjectPoint()
     {
         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        if (Input.GetKey("w"))
+            degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
+        else if (Input.GetKey("q"))
+            degreeOffset = (degreeOffset + 1) % 360;
+        projectionRend.GetChild(1).GetChild(0).eulerAngles = Vector3.forward * degreeOffset;
         //TODO: replace with own ghost
         projectionRend.GetChild(1).position = mousePos2D;
+        projectedRotations[1] = projectionRend.GetChild(1).GetChild(0).rotation;
     }
 
     public void ExecutePlanForAllUnits()
     {
         foreach (PlannerUnit p in plannerUnits) p.MoveParentToPlan();
+    }
+
+    public void StopAllUnits()
+    {
+        foreach (KeyValuePair<string, Unit> u in controllableUnits)
+        {
+            //currently only payloads support point to point movement
+            if (u.Value is Payload)
+                u.Value.CancelMoveBaseAction();
+        }
     }
 
     void Update()
@@ -412,7 +431,7 @@ public class OcuManager : Singleton<OcuManager>
                             if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
                                 StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
                             else
-                                controllableUnits["p" + i].MoveTo(projectedPositions[i], new Quaternion(0, 0, 0, 1)); 
+                                controllableUnits["p" + i].MoveTo(projectedPositions[i], projectedRotations[i]); 
                             ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }

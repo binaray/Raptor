@@ -237,6 +237,7 @@ WASD or up, down, left, right keys or joystick to move";
             SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
                 (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
         });
+        stopAllButton.onClick.AddListener(() => { OcuManager.Instance.StopAllUnits(); });
     }
     private void Update()
     {

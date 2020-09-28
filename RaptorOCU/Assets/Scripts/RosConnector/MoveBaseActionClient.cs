@@ -62,6 +62,7 @@ public class MoveBaseActionClient : MonoBehaviour
     }
     public void SetTargetPoseAndSendGoal(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
     {
+        CancelGoal();
         PoseStamped pose = new PoseStamped();
         pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
         pose.pose.position.x = position.x;
