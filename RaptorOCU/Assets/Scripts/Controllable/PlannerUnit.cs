@@ -23,16 +23,30 @@ namespace Controllable
         public void MoveParentToPlan()
         {
             //TODO: action here
-            parentUnit.transform.position = (Vector2)transform.position;
-            parentUnit.transform.rotation = transform.rotation;
-            parentUnit.realPosition = (Vector2)transform.position;
-            parentUnit.realRotation = transform.rotation;
+            if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.Prodution)
+            {
+                parentUnit.SetMoveGoal(realPosition, realRotation);
+            }
+            else
+            {
+                parentUnit.realPosition = realPosition;
+                parentUnit.transform.position = realPosition;
+                parentUnit.SetRotation(realRotation);
+            }
         }
 
-        public override void Init(string id, int raptorNum, Vector3 realPos)
+        public override void Init(string id, int raptorNum, Vector3 realPos, Quaternion realRot)
         {
             realPos.z = -1;
-            base.Init(id, raptorNum, realPos);
+            base.Init(id, raptorNum, realPos, realRot);
+        }
+
+        public void LoadPayloadData(PayloadData p)
+        {
+            realPosition = p.position;
+            realRotation = p.rotation;
+            transform.position = p.position;
+            spriteTransform.rotation = p.rotation;
         }
 
         public override void SetSelectedColors(bool isSelected)

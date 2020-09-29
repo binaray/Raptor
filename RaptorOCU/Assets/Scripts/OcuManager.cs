@@ -50,7 +50,7 @@ public class OcuManager : Singleton<OcuManager>
                     string id = string.Format("v{0}", i);
                     PlannerUnit p = Instantiate(plannerUnitPrefab);
                     p.parentUnit = controllableUnits[pid];
-                    p.Init(id, i, p.parentUnit.realPosition);
+                    p.Init(id, i, p.parentUnit.realPosition, p.parentUnit.realRotation);
                     plannerUnits.Add(p);
                 }
             }
@@ -72,7 +72,7 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private PlannerUnit plannerUnitPrefab;
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
-    private List<PlannerUnit> plannerUnits = new List<PlannerUnit>();
+    public List<PlannerUnit> plannerUnits = new List<PlannerUnit>();
     [SerializeField]
     private GameObject payloadDispTemplate;
     [SerializeField]
@@ -100,11 +100,11 @@ public class OcuManager : Singleton<OcuManager>
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
 
-    IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target)
+    IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target, Quaternion targetRotation)
     {
         while (Vector2.Distance(unit.transform.position, target) > .2f)
         {
-            unit.MoveAndRotateTowards(target, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
+            unit.MoveAndRotateTowards(target, targetRotation, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
             yield return null;
         }
     }
@@ -241,7 +241,7 @@ public class OcuManager : Singleton<OcuManager>
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
-                b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0));
+                b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
                 beaconIds.Add(id);
@@ -255,7 +255,7 @@ public class OcuManager : Singleton<OcuManager>
                 newPayloadDisp.SetActive(true);
                 newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
                 p.payloadDisplay = newPayloadDisp;
-                p.Init(id, i, new Vector3(i + 1, 3, 0));
+                p.Init(id, i, new Vector3(i + 1, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);
@@ -267,7 +267,7 @@ public class OcuManager : Singleton<OcuManager>
         {
             string id = string.Format("b{0}", i);
             Beacon b = Instantiate(beaconPrefab);
-            b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0));
+            b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);
             beaconIds.Add(id);
@@ -282,7 +282,7 @@ public class OcuManager : Singleton<OcuManager>
             newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
             p.payloadDisplay = newPayloadDisp;
             
-            p.Init(id, i, new Vector3(i + 1, 3, 0));
+            p.Init(id, i, new Vector3(i + 1, 3, 0), new Quaternion(0, 0, 0, 1));
             //p.OdomSubscribe("/position");
             p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
             p.SetupMoveBaseAction(i + 1);
@@ -429,9 +429,9 @@ public class OcuManager : Singleton<OcuManager>
                         for (int i = 0; i < operationalRobotCount; i++) //TODO: change operational robot count
                         {
                             if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
-                                StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i]));
+                                StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i], projectedRotations[i]));
                             else
-                                controllableUnits["p" + i].MoveTo(projectedPositions[i], projectedRotations[i]); 
+                                controllableUnits["p" + i].SetMoveGoal(projectedPositions[i], projectedRotations[i]); 
                             ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }
@@ -442,7 +442,7 @@ public class OcuManager : Singleton<OcuManager>
                     if (Input.GetMouseButtonDown(1))
                     {
                         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                        StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D));
+                        StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
                     }
                 }
             }

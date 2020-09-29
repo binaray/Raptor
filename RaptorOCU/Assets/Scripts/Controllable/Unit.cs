@@ -45,17 +45,19 @@ namespace Controllable
             }
         }
 
-        private Transform spriteTransform;
+        public Transform spriteTransform;
         protected bool isMessageReceived = false;
 
-        public virtual void Init(string id, int num, Vector3 realPos)
+        public virtual void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
             spriteTransform = transform.GetChild(0);
             SetSelectedColors(false);
             this.id = id;
             this.num = num;
             realPosition = realPos;
+            realRotation = realRot;
             transform.position = realPos;
+            spriteTransform.rotation = realRot;
         }
 
         public virtual void SetSelectedColors(bool isSelected)
@@ -89,13 +91,14 @@ namespace Controllable
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             isMessageReceived = true;
         }
-        /*-- Move base action --*/
+
+        /*-- Raptor movement- Requires ROS connection --*/
         public void SetupMoveBaseAction(int num)
         {
             //TODO: HANDLE BEACON ID
             GetComponent<MoveBaseActionClient>().SetupAction(num);
         }
-        public void MoveTo(Vector3 position, Quaternion rotation)
+        public void SetMoveGoal(Vector3 position, Quaternion rotation)
         {
             GetComponent<MoveBaseActionClient>().SetTargetPoseAndSendGoal(position, rotation);
         }
@@ -103,30 +106,36 @@ namespace Controllable
         {
             GetComponent<MoveBaseActionClient>().CancelGoal();
         }
-        /*-- MOVEMENT METHODS TO IMPLEMENT --*/
 
-        /* Movement Test Methods -Do not use on production*/
+        /* Local movement methods- GUI updates only */
         public void Rotate(Vector3 rotationVector)
         {
             spriteTransform.Rotate(rotationVector);
+            realRotation = spriteTransform.rotation;
         }
-
-        /* Movement Test Methods -Do not use on production*/
+        public void SetRotation(Quaternion rotation)
+        {
+            spriteTransform.rotation = rotation;
+            realRotation = spriteTransform.rotation;
+        }
+        public void SetRotation(Vector3 eulerAngles)
+        {
+            spriteTransform.eulerAngles = eulerAngles;
+            realRotation = spriteTransform.rotation;
+        }
         public void MoveForward(float forwardDelta)
         {
             Vector3 directionVector = spriteTransform.rotation * Vector3.up;
             realPosition += directionVector * forwardDelta;
             transform.position = realPosition;
         }
-
-        /* Movement Test Methods -Do not use on production*/
-        public void MoveAndRotateTowards(Vector2 target, float forwardDelta, float rotationDelta)
+        public void MoveAndRotateTowards(Vector2 target, Quaternion targetRotation, float forwardDelta, float rotationDelta)
         {
             Vector2 nextPos = Vector2.MoveTowards(transform.position, target, forwardDelta);
-            //transform.position = nextPos;
-            realPosition = nextPos;
             transform.position = nextPos;
-            spriteTransform.rotation = Quaternion.RotateTowards(new Quaternion(0, 0, 0, 1), Quaternion.FromToRotation(transform.position, target), rotationDelta);
+            spriteTransform.rotation = Quaternion.RotateTowards(targetRotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
+            realPosition = nextPos;
+            realRotation = spriteTransform.rotation;
         }
     }
 

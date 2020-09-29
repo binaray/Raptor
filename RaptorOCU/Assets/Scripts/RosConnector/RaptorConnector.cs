@@ -87,7 +87,6 @@ public class RaptorConnector : Singleton<RaptorConnector>
         ocuLogger.Logw("Disconnected from RosBridge: " + RosBridgeServerUrl);
     }
 
-
     private void OnApplicationQuit()
     {
         rosSocket.Close();

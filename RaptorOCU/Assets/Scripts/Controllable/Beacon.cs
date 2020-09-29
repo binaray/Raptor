@@ -6,9 +6,9 @@ namespace Controllable
 {
     public class Beacon : Unit
     {
-        public override void Init(string id, int num, Vector3 realPos)
+        public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
-            base.Init(id, num, realPos);
+            base.Init(id, num, realPos, realRot) ;
         }
 
         public override void SetSelectedColors(bool isSelected)

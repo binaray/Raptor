@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using SimpleFileBrowser;
+using System.Collections.Generic;
 
 public class UiManager : Singleton<UiManager>
 {
@@ -226,28 +228,6 @@ WASD or up, down, left, right keys or joystick to move";
         ChangeState(State.SettingsPage);
     }
 
-    /*-- Realtime Ui updates --*/
-    private void Start()
-    {
-        executePlanButton.onClick.AddListener(() => { OcuManager.Instance.ExecutePlanForAllUnits(); });
-        plannerModeButtonTransform.GetComponent<Button>().onClick.AddListener(()=>
-        {
-            OcuManager.Instance.IsPlannerMode = !OcuManager.Instance.IsPlannerMode;
-            plannerOverlay.SetActive(OcuManager.Instance.IsPlannerMode);
-            SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
-                (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
-        });
-        stopAllButton.onClick.AddListener(() => { OcuManager.Instance.StopAllUnits(); });
-    }
-    private void Update()
-    {
-        if (OcuManager.Instance.SelectedUnit != null)
-        {
-            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
-            unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
-        }
-    }
-
     public void SettingsChangeRosAddressButton()
     {
         RaptorConnector.Instance.rosSocket.Close();
@@ -330,6 +310,139 @@ WASD or up, down, left, right keys or joystick to move";
         else if (currentState == State.ManualMovement)
         {
             ChangeState(State.UnitSelected);
+        }
+    }
+    public void SetIsPlannerMode(bool isPlannerMode)
+    {
+        OcuManager.Instance.IsPlannerMode = isPlannerMode;
+        plannerOverlay.SetActive(OcuManager.Instance.IsPlannerMode);
+        SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
+            (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
+    }
+
+    /*-- Save and load dialogs --*/
+    IEnumerator ShowSaveDialogCoroutine()
+    {
+        // Show a load file dialog and wait for a response from user
+        // Load file/folder: file, Allow multiple selection: true
+        // Initial path: default (Documents), Title: "Load File", submit button text: "Load"
+        if (OcuManager.Instance.IsPlannerMode)
+            yield return FileBrowser.WaitForSaveDialog(false, false, null, "Save Payload Positions as Plan", "Save");
+        else
+            yield return FileBrowser.WaitForSaveDialog(false, false, null, "Save Planned Payload Positions as Plan", "Save");
+
+        // Dialog is closed
+        // Print whether the user has selected some files/folders or cancelled the operation (FileBrowser.Success)
+        Debug.Log(FileBrowser.Success);
+
+        if (FileBrowser.Success)
+        {
+            string path = "";
+            // Print paths of the selected files (FileBrowser.Result) (null, if FileBrowser.Success is false)
+            for (int i = 0; i < FileBrowser.Result.Length; i++)
+            {
+                Debug.Log(FileBrowser.Result[i]);
+                path = FileBrowser.Result[i];
+            }
+
+            RaptorPlanData data = new RaptorPlanData();
+            if (OcuManager.Instance.IsPlannerMode)
+            {
+                foreach (KeyValuePair<string, Unit> u in OcuManager.Instance.controllableUnits)
+                {
+                    if (u.Value is PlannerUnit)
+                    {
+                        PayloadData p = new PayloadData();
+                        p.Init(u.Value.realPosition, u.Value.realRotation);
+                        data.payloadDatas.Add(p);
+                        print("Payload added");
+                    }
+                    else if (u.Value is Beacon)
+                    {
+                        BeaconData b = new BeaconData();
+                        b.Init(u.Value.realPosition, u.Value.realRotation);
+                        data.beaconDatas.Add(b);
+                        print("beacon added");
+                    }
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, Unit> u in OcuManager.Instance.controllableUnits)
+                {
+                    if (u.Value is Payload)
+                    {
+                        PayloadData p = new PayloadData();
+                        p.Init(u.Value.realPosition, u.Value.realRotation);
+                        data.payloadDatas.Add(p);
+                    }
+                    else if (u.Value is Beacon)
+                    {
+                        BeaconData b = new BeaconData();
+                        b.Init(u.Value.realPosition, u.Value.realRotation);
+                        data.beaconDatas.Add(b);
+                    }
+                }
+            }
+            string json = data.ToJson();
+            // Read the bytes of the first file via FileBrowserHelpers
+            // Contrary to File.ReadAllBytes, this function works on Android 10+, as well
+            byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(json);
+            System.IO.File.WriteAllBytes(path, byteArray);
+        }
+    }
+    IEnumerator ShowLoadDialogCoroutine()
+    {
+        // Show a load file dialog and wait for a response from user
+        // Load file/folder: file, Allow multiple selection: true
+        // Initial path: default (Documents), Title: "Load File", submit button text: "Load"
+        yield return FileBrowser.WaitForLoadDialog(false, true, null, "Load Plan", "Load");
+
+        // Dialog is closed
+        // Print whether the user has selected some files/folders or cancelled the operation (FileBrowser.Success)
+        Debug.Log(FileBrowser.Success);
+
+        if (FileBrowser.Success)
+        {
+            // Print paths of the selected files (FileBrowser.Result) (null, if FileBrowser.Success is false)
+            for (int i = 0; i < FileBrowser.Result.Length; i++)
+                Debug.Log(FileBrowser.Result[i]);
+
+            // Read the bytes of the first file via FileBrowserHelpers
+            // Contrary to File.ReadAllBytes, this function works on Android 10+, as well
+            byte[] bytes = FileBrowserHelpers.ReadBytesFromFile(FileBrowser.Result[0]);
+            RaptorPlanData data = JsonUtility.FromJson<RaptorPlanData>(System.Text.Encoding.UTF8.GetString(bytes));
+
+            SetIsPlannerMode(true);
+            for (int i=0; i<data.payloadDatas.Count && i< OcuManager.Instance.plannerUnits.Count; i++)
+            {
+                OcuManager.Instance.plannerUnits[i].LoadPayloadData(data.payloadDatas[i]);
+            }
+            //print(res);
+        }
+    }
+
+
+    /*-- Ui setup and updates --*/
+    private void Start()
+    {
+        executePlanButton.onClick.AddListener(() => { OcuManager.Instance.ExecutePlanForAllUnits(); });
+        plannerModeButtonTransform.GetComponent<Button>().onClick.AddListener(() => { SetIsPlannerMode(!OcuManager.Instance.IsPlannerMode); });
+        stopAllButton.onClick.AddListener(() => { OcuManager.Instance.StopAllUnits(); });
+
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("Raptor Plan",".json"));//, new FileBrowser.Filter("Images", ".jpg", ".png"), new FileBrowser.Filter("Text Files", ".txt", ".pdf"));
+        FileBrowser.SetDefaultFilter(".json");
+        FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
+        FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+        savePlanButton.onClick.AddListener(() => { StartCoroutine(ShowSaveDialogCoroutine()); });
+        loadPlanButton.onClick.AddListener(() => { StartCoroutine(ShowLoadDialogCoroutine()); });
+    }
+    private void Update()
+    {
+        if (OcuManager.Instance.SelectedUnit != null)
+        {
+            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
+            unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
     }
 }

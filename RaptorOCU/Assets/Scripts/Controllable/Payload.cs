@@ -25,9 +25,9 @@ namespace Controllable
             }
         }
 
-        public override void Init(string id, int raptorNum, Vector3 realPos)
+        public override void Init(string id, int raptorNum, Vector3 realPos, Quaternion realRot)
         {
-            base.Init(id, raptorNum, realPos);
+            base.Init(id, raptorNum, realPos, realRot);
             payloadDisplay.GetComponent<PayloadDisplayItem>().SetText(id);
         }
 
