@@ -3,6 +3,7 @@ using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Geometry;
 using UnityEngine;
 
+// Default ROS status definitions
 public enum Status{
     PENDING = 0,    // The goal has yet to be processed by the action server
     ACTIVE = 1,     // The goal is currently being processed by the action server
@@ -37,7 +38,7 @@ public class MoveBaseActionClient : MonoBehaviour
     protected ActionServer<MoveBaseActionGoal, MoveBaseActionFeedback, MoveBaseActionResult>.ActionStates ActionState;
     protected MoveBaseActionGoal ActionGoal;
     protected MoveBaseActionFeedback ActionFeedback;
-    protected MoveBaseActionResult ActionResult;
+    protected MoveBaseActionResult ActionResult = new MoveBaseActionResult();
 
     bool dataRc = false;
     private void Update()
@@ -67,7 +68,6 @@ public class MoveBaseActionClient : MonoBehaviour
         PoseStamped pose = new PoseStamped();
         //pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
         pose.header.frame_id = "map";
-
 
         pose.pose.position.x = position.x;
         pose.pose.position.y = position.y;

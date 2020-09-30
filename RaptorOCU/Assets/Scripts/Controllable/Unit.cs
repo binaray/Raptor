@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using RosSharp.RosBridgeClient;
 using nav_msgs = RosSharp.RosBridgeClient.Messages.Navigation;
 
 namespace Controllable
@@ -90,6 +91,28 @@ namespace Controllable
             realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             isMessageReceived = true;
+        }
+
+        /*-- Joystick (Manual movement) publisher --*/
+        private JoyAxisReader[] JoyAxisReaders;
+        private JoyButtonReader[] JoyButtonReaders;
+        public string FrameId = "Unity";
+        private string JoyPublicationId;
+        private RosSharp.RosBridgeClient.Messages.Sensor.Joy message;
+        public void JoyPublisherSetup(int num)
+        {
+            message = new RosSharp.RosBridgeClient.Messages.Sensor.Joy();
+            message.header.frame_id = FrameId;
+            message.axes = new float[2];
+            message.buttons = new int[0];
+            JoyPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Sensor.Joy>("/goal");
+        }
+        public void PublishJoy()
+        {
+            message.header.Update();
+            message.axes[0] = Input.GetAxis("Horizontal");
+            message.axes[1] = Input.GetAxis("Vertical");
+            RaptorConnector.Instance.rosSocket.Publish(JoyPublicationId, message);
         }
 
         /*-- Raptor movement- Requires ROS connection --*/
