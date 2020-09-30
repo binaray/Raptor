@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using RosSharp.RosBridgeClient.Messages;
 
 namespace Controllable
 {
@@ -24,5 +25,23 @@ namespace Controllable
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
             }
         }
+
+        //private string cameraSubscriptionId;
+        //protected void CaneraUpdate()
+        //{
+        //    transform.position = realPosition;
+        //    transform.rotation = realRotation;
+        //}
+        //public void CameraSubscribe(string id)
+        //{
+        //    OcuLogger.Instance.Logv("Subscribing to: " + id);
+        //    cameraSubscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(id, CameraSubscriptionHandler);
+        //}
+        //protected virtual void CameraSubscriptionHandler(nav_msgs.Odometry odom)
+        //{
+        //    realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
+        //    realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
+        //    isMessageReceived = true;
+        //}
     }
 }
