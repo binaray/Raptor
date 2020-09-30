@@ -284,6 +284,8 @@ public class OcuManager : Singleton<OcuManager>
             
             p.Init(id, i, new Vector3(i + 1, 3, 0), new Quaternion(0, 0, 0, 1));
             //p.OdomSubscribe("/position");
+
+            //Setup of Ros endpoints
             p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
             p.SetupMoveBaseAction(i + 1);
 
@@ -442,7 +444,13 @@ public class OcuManager : Singleton<OcuManager>
                     if (Input.GetMouseButtonDown(1))
                     {
                         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                        StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
+                        if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
+                            StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
+                        else
+                        {
+                            SelectedUnit.SetMoveGoal(projectedPositions[1], projectedRotations[1]);
+                            //SelectedUnit.SetMoveGoal(new Vector3(0f, -3f, 0f), new Quaternion(0, 0, 0.9f, -0.4f));
+                        }
                     }
                 }
             }

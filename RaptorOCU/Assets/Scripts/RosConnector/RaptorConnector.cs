@@ -39,6 +39,8 @@ public class RaptorConnector : Singleton<RaptorConnector>
     IEnumerator ConnectAndWait()
     {
         ocuLogger.Logw("--Attempting to connect to ROS--");
+        //RosBridgeServerUrl = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_URL, null);
+
         rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
         yield return new WaitForSeconds(2f);
         if (!isConnected.WaitOne(0))

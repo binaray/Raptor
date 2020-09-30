@@ -10637,6 +10637,7 @@ MonoBehaviour:
     type: 3}
   plannerUnitPrefab: {fileID: 7640205335383747767, guid: 96395931749a6454caede7700faf925b,
     type: 3}
+  plannerUnits: []
   payloadDispTemplate: {fileID: 1606411131}
   beaconGuiTemplate: {fileID: 0}
   curSpeed: 5
@@ -10672,8 +10673,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Timeout: 10
   Serializer: 0
-  RosBridgeServerUrl: ws://192.168.137.54:9090
-  buildMode: 0
+  RosBridgeServerUrl: ws://10.21.129.12:9090
+  buildMode: 1
 --- !u!114 &2135344962
 MonoBehaviour:
   m_ObjectHideFlags: 0

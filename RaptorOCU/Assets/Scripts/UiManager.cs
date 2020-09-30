@@ -164,8 +164,9 @@ Left click on any unit on scene for contextual actions";
     IEnumerator PointToPointState()
     {
         helpDispText.text = @"-Point to Point Movement Mode-
-Beacon will move to selected position
+Selected unit will move to selected position
 
+Q/W: Rotate Left/Right
 Right click: Confirm";
 
         SetButtonState(pointToPointButton, true);
@@ -182,7 +183,7 @@ Right click: Confirm";
     IEnumerator PointToFormationState()
     {
         helpDispText.text = @"-Point to Formation Movement Mode-
-Units will form formation at selected position
+All payloads will form formation at selected position
 
 Q/W: Rotate Left/Right   A/S: Scale down/up
 Right click: Confirm";
@@ -231,7 +232,7 @@ WASD or up, down, left, right keys or joystick to move";
     public void SettingsChangeRosAddressButton()
     {
         RaptorConnector.Instance.rosSocket.Close();
-        RaptorConnector.Instance.RosBridgeServerUrl = ipAddressText.text;
+        PlayerPrefs.SetString("RosUrl", ipAddressText.text);
         RaptorConnector.Instance.RosConnectionRoutine();
         //new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
     }
@@ -355,14 +356,12 @@ WASD or up, down, left, right keys or joystick to move";
                         PayloadData p = new PayloadData();
                         p.Init(u.Value.realPosition, u.Value.realRotation);
                         data.payloadDatas.Add(p);
-                        print("Payload added");
                     }
                     else if (u.Value is Beacon)
                     {
                         BeaconData b = new BeaconData();
                         b.Init(u.Value.realPosition, u.Value.realRotation);
                         data.beaconDatas.Add(b);
-                        print("beacon added");
                     }
                 }
             }
@@ -433,7 +432,7 @@ WASD or up, down, left, right keys or joystick to move";
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Raptor Plan",".json"));//, new FileBrowser.Filter("Images", ".jpg", ".png"), new FileBrowser.Filter("Text Files", ".txt", ".pdf"));
         FileBrowser.SetDefaultFilter(".json");
         FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
-        FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+        FileBrowser.AddQuickLink("Users", "", null);
         savePlanButton.onClick.AddListener(() => { StartCoroutine(ShowSaveDialogCoroutine()); });
         loadPlanButton.onClick.AddListener(() => { StartCoroutine(ShowLoadDialogCoroutine()); });
     }

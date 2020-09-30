@@ -53,6 +53,7 @@ public class MoveBaseActionClient : MonoBehaviour
     {
         raptorNum = raptorNo;
         string actionName = string.Format("raptor{0}/move_base", raptorNum);
+        OcuLogger.Instance.Logv("Setting up move base at: " + actionName);
         CancelPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Actionlib.GoalID>(actionName + "/cancel");
         GoalPublicationId = RaptorConnector.Instance.rosSocket.Advertise<MoveBaseActionGoal>(actionName + "/goal");
 
@@ -62,9 +63,12 @@ public class MoveBaseActionClient : MonoBehaviour
     }
     public void SetTargetPoseAndSendGoal(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
     {
-        CancelGoal();
+        //CancelGoal();
         PoseStamped pose = new PoseStamped();
-        pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
+        //pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
+        pose.header.frame_id = "map";
+
+
         pose.pose.position.x = position.x;
         pose.pose.position.y = position.y;
         pose.pose.position.z = position.z;
@@ -73,15 +77,18 @@ public class MoveBaseActionClient : MonoBehaviour
         pose.pose.orientation.y = rotation.y;
         pose.pose.orientation.z = rotation.z;
         pose.pose.orientation.w = rotation.w;
+        OcuLogger.Instance.Logv("Target pos and rotation: " + position.ToString() + ", " + rotation.ToString());
         targetPose = pose;
         SendGoal();
     }
     public void SendGoal()
     {
+        OcuLogger.Instance.Logv("Sending new goal for payload " + raptorNum);
         RaptorConnector.Instance.rosSocket.Publish(GoalPublicationId, new MoveBaseActionGoal() { goal = new MoveBaseGoal { target_pose = targetPose } });
     }
     public void CancelGoal()
     {
+        OcuLogger.Instance.Logv("Cancelling prior goal for payload " + raptorNum);
         ActionGoalId = new RosSharp.RosBridgeClient.Messages.Actionlib.GoalID();
         RaptorConnector.Instance.rosSocket.Publish(CancelPublicationId, ActionGoalId);
     }
