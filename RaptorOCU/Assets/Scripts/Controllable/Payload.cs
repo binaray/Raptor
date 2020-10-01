@@ -16,6 +16,7 @@ namespace Controllable
 
         private void Update()
         {
+            //print(((Vector2)realPosition).ToString() + " " + realRotation.ToString());
             if (isMessageReceived)
             {
                 OdomUpdate();

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CameraPan : MonoBehaviour
 {
@@ -15,6 +16,15 @@ public class CameraPan : MonoBehaviour
     private GameObject lineRenderer;
     [SerializeField]
     private Transform gridlineRenderTransform;
+    [SerializeField]
+    private GameObject gridText;
+    [SerializeField]
+    private Transform gridTextTransform;
+    [SerializeField]
+    private float textXOffset = 0;
+    [SerializeField]
+    private float textYOffset = 0;
+
     Vector2 lowerBound;
     Vector2 upperBound;
     float gridlineStep = 2.0f;
@@ -69,6 +79,8 @@ public class CameraPan : MonoBehaviour
             if (childNo <= gridlineRenderTransform.childCount) Instantiate(lineRenderer, gridlineRenderTransform);
             gridlineRenderTransform.GetChild(childNo++).GetComponent<LineRenderer>().SetPositions(drawPoints);
         }
+        int vertLineCount = childNo;
+
         for (float y = lowerBound.y; y < upperBound.y; y += gridlineStep)
         {
             drawPoints[0] = new Vector2(lowerBound.x, y);
@@ -76,11 +88,29 @@ public class CameraPan : MonoBehaviour
             if (childNo <= gridlineRenderTransform.childCount) Instantiate(lineRenderer, gridlineRenderTransform);
             gridlineRenderTransform.GetChild(childNo++).GetComponent<LineRenderer>().SetPositions(drawPoints);
         }
+        //int vertLineCount = horLineCount - childNo;
+
+        int textCount = 0;
+        for (int v = 0; v < vertLineCount; v++)
+        {
+            float x = gridlineRenderTransform.GetChild(v).GetComponent<LineRenderer>().GetPosition(0).x;
+            for (int h = vertLineCount; h < childNo; h++)
+            {
+                float y = gridlineRenderTransform.GetChild(h).GetComponent<LineRenderer>().GetPosition(0).y;
+                if (textCount <= gridTextTransform.childCount) Instantiate(gridText, gridTextTransform);
+                gridTextTransform.GetChild(textCount).position = new Vector3(x + textXOffset, y + textYOffset, 0);
+                gridTextTransform.GetChild(textCount++).GetComponent<TMPro.TextMeshPro>().text = x + ", " + y;
+            }
+        }
 
         //Destroy unused lines
         for (int i = gridlineRenderTransform.childCount; i > childNo; i--)
         {
             Destroy(gridlineRenderTransform.GetChild(i - 1).gameObject);
+        }
+        for (int i = gridTextTransform.childCount; i > textCount; i--)
+        {
+            Destroy(gridTextTransform.GetChild(i - 1).gameObject);
         }
     }
 
