@@ -78,7 +78,7 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private GameObject beaconGuiTemplate;
 
-    /* Test Values--TO REMOVE ON PRODUCTION */
+    /* Local mode values */
     [SerializeField]
     private float curSpeed = 5f;
     [SerializeField]
@@ -154,12 +154,12 @@ public class OcuManager : Singleton<OcuManager>
         {
             if (firstIteration)
             {
-                minPoint = controllableUnits[id].realPosition;
+                minPoint = controllableUnits[id].transform.position;
                 firstIteration = false;
             }
             else
             {
-                Vector2 beaconPos = controllableUnits[id].realPosition;
+                Vector2 beaconPos = controllableUnits[id].transform.position;
                 if (beaconPos.y < minPoint.y || beaconPos.y == minPoint.y && beaconPos.x < minPoint.y)
                 {
                     points.Add(minPoint);
@@ -444,7 +444,7 @@ public class OcuManager : Singleton<OcuManager>
                             if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
                                 StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i], projectedRotations[i]));
                             else
-                                controllableUnits["p" + i].SetMoveGoal(projectedPositions[i], projectedRotations[i]); 
+                                controllableUnits["p" + i].SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[i]), projectedRotations[i]); 
                             ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
                         }
                     }
@@ -459,7 +459,7 @@ public class OcuManager : Singleton<OcuManager>
                             StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
                         else
                         {
-                            SelectedUnit.SetMoveGoal(projectedPositions[1], projectedRotations[1]);
+                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[1]), projectedRotations[1]);
                             //SelectedUnit.SetMoveGoal(new Vector3(0f, -3f, 0f), new Quaternion(0, 0, 0.9f, -0.4f));
                         }
                     }

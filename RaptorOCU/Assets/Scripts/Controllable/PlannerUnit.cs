@@ -29,8 +29,7 @@ namespace Controllable
             }
             else
             {
-                parentUnit.realPosition = realPosition;
-                parentUnit.transform.position = realPosition;
+                parentUnit.SetRealPosition(realPosition);
                 parentUnit.SetRotation(realRotation);
             }
         }
@@ -43,10 +42,12 @@ namespace Controllable
 
         public void LoadPayloadData(PayloadData p)
         {
-            realPosition = p.position;
-            realRotation = p.rotation;
-            transform.position = p.position;
-            spriteTransform.rotation = p.rotation;
+            SetRealPosition(p.position);
+            SetRotation(p.rotation);
+            //realPosition = p.position;
+            //realRotation = p.rotation;
+            //transform.position = p.position;
+            //spriteTransform.rotation = p.rotation;
         }
 
         public override void SetSelectedColors(bool isSelected)

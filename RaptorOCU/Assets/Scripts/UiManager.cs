@@ -349,20 +349,11 @@ WASD or up, down, left, right keys or joystick to move";
             RaptorPlanData data = new RaptorPlanData();
             if (OcuManager.Instance.IsPlannerMode)
             {
-                foreach (KeyValuePair<string, Unit> u in OcuManager.Instance.controllableUnits)
+                foreach (PlannerUnit u in OcuManager.Instance.plannerUnits)
                 {
-                    if (u.Value is PlannerUnit)
-                    {
-                        PayloadData p = new PayloadData();
-                        p.Init(u.Value.realPosition, u.Value.realRotation);
-                        data.payloadDatas.Add(p);
-                    }
-                    else if (u.Value is Beacon)
-                    {
-                        BeaconData b = new BeaconData();
-                        b.Init(u.Value.realPosition, u.Value.realRotation);
-                        data.beaconDatas.Add(b);
-                    }
+                    PayloadData p = new PayloadData();
+                    p.Init(u.realPosition, u.realRotation);
+                    data.payloadDatas.Add(p);
                 }
             }
             else
@@ -440,7 +431,7 @@ WASD or up, down, left, right keys or joystick to move";
     {
         if (OcuManager.Instance.SelectedUnit != null)
         {
-            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "ALIVE";
+            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = OcuManager.Instance.SelectedUnit.status.ToString();
             unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
     }

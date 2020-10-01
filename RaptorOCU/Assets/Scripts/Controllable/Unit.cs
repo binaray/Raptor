@@ -55,10 +55,8 @@ namespace Controllable
             SetSelectedColors(false);
             this.id = id;
             this.num = num;
-            realPosition = realPos;
-            realRotation = realRot;
-            transform.position = realPos;
-            spriteTransform.rotation = realRot;
+            SetRealPosition(realPos);
+            SetRotation(realRot);
         }
 
         public virtual void SetSelectedColors(bool isSelected)
@@ -78,7 +76,7 @@ namespace Controllable
         /*-- SUBSCRIPTION HANDLERS TO IMPLEMENT --*/
         protected void OdomUpdate()
         {
-            transform.position = realPosition;
+            transform.position = WorldScaler.RealToWorldPosition(realPosition);
             transform.rotation = realRotation;
         }
         public void OdomSubscribe(string id)
@@ -88,6 +86,8 @@ namespace Controllable
         }
         protected virtual void OdomSubscriptionHandler(nav_msgs.Odometry odom)
         {
+            // For some reason gui updates are not updated here so flag to main loop is used instead
+            // TODO: test updates using getter/setter
             realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             isMessageReceived = true;
@@ -121,9 +121,9 @@ namespace Controllable
             //TODO: HANDLE BEACON ID
             GetComponent<MoveBaseActionClient>().SetupAction(num);
         }
-        public void SetMoveGoal(Vector3 position, Quaternion rotation)
+        public void SetMoveGoal(Vector3 targetRealPos, Quaternion rotation)
         {
-            GetComponent<MoveBaseActionClient>().SetTargetPoseAndSendGoal(position, rotation);
+            GetComponent<MoveBaseActionClient>().SetTargetPoseAndSendGoal(targetRealPos, rotation);
         }
         public void CancelMoveBaseAction()
         {
@@ -149,16 +149,23 @@ namespace Controllable
         public void MoveForward(float forwardDelta)
         {
             Vector3 directionVector = spriteTransform.rotation * Vector3.up;
-            realPosition += directionVector * forwardDelta;
-            transform.position = realPosition;
+            SetWorldPosition(transform.position + directionVector * forwardDelta);
         }
         public void MoveAndRotateTowards(Vector2 target, Quaternion targetRotation, float forwardDelta, float rotationDelta)
         {
-            Vector2 nextPos = Vector2.MoveTowards(transform.position, target, forwardDelta);
-            transform.position = nextPos;
-            spriteTransform.rotation = Quaternion.RotateTowards(targetRotation, Quaternion.FromToRotation(transform.position, target), rotationDelta);
-            realPosition = nextPos;
-            realRotation = spriteTransform.rotation;
+            SetWorldPosition(Vector2.MoveTowards(transform.position, target, forwardDelta));
+            SetRotation(Quaternion.RotateTowards(targetRotation, Quaternion.FromToRotation(transform.position, target), rotationDelta));
+        }
+
+        public void SetRealPosition(Vector3 realPos)
+        {
+            transform.position = WorldScaler.RealToWorldPosition(realPos);
+            realPosition = realPos;
+        }
+        public void SetWorldPosition(Vector3 worldPos)
+        {
+            transform.position = worldPos;
+            realPosition = WorldScaler.WorldToRealPosition(worldPos);
         }
     }
 

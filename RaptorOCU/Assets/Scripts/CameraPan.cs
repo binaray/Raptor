@@ -21,9 +21,9 @@ public class CameraPan : MonoBehaviour
     [SerializeField]
     private Transform gridTextTransform;
     [SerializeField]
-    private float textXOffset = 0;
+    private float textXOffset = 0.05f;
     [SerializeField]
-    private float textYOffset = 0;
+    private float textYOffset = 0.03f;
 
     Vector2 lowerBound;
     Vector2 upperBound;
@@ -99,7 +99,7 @@ public class CameraPan : MonoBehaviour
                 float y = gridlineRenderTransform.GetChild(h).GetComponent<LineRenderer>().GetPosition(0).y;
                 if (textCount <= gridTextTransform.childCount) Instantiate(gridText, gridTextTransform);
                 gridTextTransform.GetChild(textCount).position = new Vector3(x + textXOffset, y + textYOffset, 0);
-                gridTextTransform.GetChild(textCount++).GetComponent<TMPro.TextMeshPro>().text = x + ", " + y;
+                gridTextTransform.GetChild(textCount++).GetComponent<TMPro.TextMeshPro>().text = WorldScaler.WorldToRealPosition(x) + ", " + WorldScaler.WorldToRealPosition(y);
             }
         }
 
