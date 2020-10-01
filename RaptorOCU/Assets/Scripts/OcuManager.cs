@@ -241,6 +241,12 @@ public class OcuManager : Singleton<OcuManager>
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
+
+                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+                newBeaconDisp.SetActive(true);
+                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+                b.beaconDisplay = newBeaconDisp;
+
                 b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
@@ -267,6 +273,11 @@ public class OcuManager : Singleton<OcuManager>
         {
             string id = string.Format("b{0}", i);
             Beacon b = Instantiate(beaconPrefab);
+            GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+            newBeaconDisp.SetActive(true);
+            newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+            b.beaconDisplay = newBeaconDisp;
+
             b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);

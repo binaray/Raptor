@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using RosSharp.RosBridgeClient.Messages;
+using UnityEngine.UI;
 
 namespace Controllable
 {
     public class Beacon : Unit
     {
+        public GameObject beaconDisplay;
+
         public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
+            beaconDisplay.transform.GetChild(0).GetComponent<Text>().text = id;
             base.Init(id, num, realPos, realRot) ;
         }
 

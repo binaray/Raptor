@@ -10648,7 +10648,7 @@ MonoBehaviour:
     type: 3}
   plannerUnits: []
   payloadDispTemplate: {fileID: 1606411131}
-  beaconGuiTemplate: {fileID: 0}
+  beaconGuiTemplate: {fileID: 657181774}
   curSpeed: 5
   rotSpeed: 60
   beaconCount: 4
@@ -10683,7 +10683,7 @@ MonoBehaviour:
   Timeout: 10
   Serializer: 0
   RosBridgeServerUrl: ws://10.21.129.12:9090
-  buildMode: 1
+  buildMode: 0
 --- !u!114 &2135344962
 MonoBehaviour:
   m_ObjectHideFlags: 0
