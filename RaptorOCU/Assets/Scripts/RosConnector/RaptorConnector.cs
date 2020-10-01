@@ -48,18 +48,6 @@ public class RaptorConnector : Singleton<RaptorConnector>
         else
         {
             OcuManager.Instance.InitUnits();
-            //MoveBaseActionClient mb = GetComponent<MoveBaseActionClient>();
-            //PoseStamped pose = new PoseStamped();
-            //pose.header.frame_id = "raptor1/base_link";
-            //pose.pose.position.x = 1;
-            //pose.pose.position.y = 2;
-            //pose.pose.position.z = 0;
-
-            //pose.pose.orientation.w = 1;
-
-            //mb.SetupAction(1);
-            //mb.targetPose = pose;
-            //mb.SendGoal();
         }
         yield return null;
     }
@@ -92,49 +80,6 @@ public class RaptorConnector : Singleton<RaptorConnector>
     private void OnApplicationQuit()
     {
         rosSocket.Close();
-    }
-
-    /*-- Subscription handlers --*/
-    public void OdomSubscribe(string id)
-    {
-        subscriptionId = rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
-        ocuLogger.Logv("Subscribed to " + subscriptionId);
-    }
-    private void OdomSubscriptionHandler(nav_msgs.Odometry odom)
-    {
-        position = GetPosition(odom);
-        rotation = GetRotation(odom);
-        isMessageReceived = true;
-    }
-
-    UnityEngine.Vector3 position;
-    UnityEngine.Quaternion rotation;
-    private bool isMessageReceived;
-    private void Update()
-    {
-        //if (isMessageReceived) ProcessMessage();
-    }
-
-    void ProcessMessage()
-    {
-        ocuLogger.Logv(string.Format("Unit pos: {0}\n" +
-            "orientation: {1}", position, rotation));
-    }
-
-    private UnityEngine.Vector3 GetPosition(nav_msgs.Odometry message)
-    {
-        return new UnityEngine.Vector3(
-            message.pose.pose.position.x,
-            message.pose.pose.position.y,
-            message.pose.pose.position.z);
-    }
-    private UnityEngine.Quaternion GetRotation(nav_msgs.Odometry message)
-    {
-        return new UnityEngine.Quaternion(
-            message.pose.pose.orientation.x,
-            message.pose.pose.orientation.y,
-            message.pose.pose.orientation.z,
-            message.pose.pose.orientation.w);
     }
 
 
