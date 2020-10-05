@@ -297,7 +297,7 @@ public class OcuManager : Singleton<OcuManager>
             //p.OdomSubscribe("/position");
 
             //Setup of Ros endpoints
-            p.OdomSubscribe(string.Format("raptor{0}/odom", i + 1));
+            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i + 1));
             p.SetupMoveBaseAction(i + 1);
 
             ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
@@ -459,7 +459,7 @@ public class OcuManager : Singleton<OcuManager>
                             StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
                         else
                         {
-                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[1]), projectedRotations[1]);
+                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(mousePos2D), projectedRotations[1]);
                             //SelectedUnit.SetMoveGoal(new Vector3(0f, -3f, 0f), new Quaternion(0, 0, 0.9f, -0.4f));
                         }
                     }

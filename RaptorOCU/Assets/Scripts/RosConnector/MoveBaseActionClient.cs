@@ -66,12 +66,17 @@ public class MoveBaseActionClient : MonoBehaviour
     {
         //CancelGoal();
         PoseStamped pose = new PoseStamped();
-        //pose.header.frame_id = string.Format("raptor{0}/base_link", raptorNum);
-        pose.header.frame_id = "map";
+        pose.header.frame_id = string.Format("raptor{0}/odom", raptorNum);
+        //pose.header.frame_id = "map";
 
         pose.pose.position.x = position.x;
         pose.pose.position.y = position.y;
         pose.pose.position.z = position.z;
+
+        //pose.pose.orientation.x = -rotation.z;
+        //pose.pose.orientation.y = rotation.x;
+        //pose.pose.orientation.z = -rotation.y;
+        //pose.pose.orientation.w = rotation.w;
 
         pose.pose.orientation.x = rotation.x;
         pose.pose.orientation.y = rotation.y;

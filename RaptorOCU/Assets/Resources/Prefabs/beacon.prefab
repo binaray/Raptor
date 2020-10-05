@@ -64,6 +64,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   status: 0
+  realPosition: {x: 0, y: 0, z: 0}
+  realRotation: {x: 0, y: 0, z: 0, w: 0}
+  spriteTransform: {fileID: 0}
+  FrameId: Unity
+  beaconDisplay: {fileID: 0}
 --- !u!50 &1688453729605279424
 Rigidbody2D:
   serializedVersion: 4
@@ -161,7 +166,7 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -943256341
-  m_SortingLayer: 3
+  m_SortingLayer: 6
   m_SortingOrder: 0
 --- !u!33 &1688453729684857791
 MeshFilter:
@@ -359,9 +364,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 377578751
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: cb9871edf9300454d98b00e4ba2dbe06, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 62c31df5a9ef44d44bbc823f333dfd0a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -440,9 +445,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 377578751
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 49cc4aed20ca5e5408676bfc518c6c02, type: 3}
+  m_Sprite: {fileID: 21300000, guid: baa559090cc67184ea86cdfee669afa5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

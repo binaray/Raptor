@@ -610,7 +610,7 @@ SpriteRenderer:
   m_SortingLayerID: 195265789
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: a63f0d6e5705c0943be687dcefb4dc18, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2b2eb69ac25bf0148bdec89525836b16, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -692,7 +692,7 @@ SpriteRenderer:
   m_SortingLayerID: 195265789
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: ace2e6c68969d6440a398ccf9df3bf8d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4197acf16cd9b4843b7e04e3db8b274f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -791,4 +791,6 @@ MonoBehaviour:
   status: 0
   realPosition: {x: 0, y: 0, z: 0}
   realRotation: {x: 0, y: 0, z: 0, w: 0}
+  spriteTransform: {fileID: 0}
+  FrameId: Unity
   parentUnit: {fileID: 0}

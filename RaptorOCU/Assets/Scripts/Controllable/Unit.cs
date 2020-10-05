@@ -77,7 +77,8 @@ namespace Controllable
         protected void OdomUpdate()
         {
             transform.position = WorldScaler.RealToWorldPosition(realPosition);
-            transform.rotation = realRotation;
+            spriteTransform.rotation = realRotation;
+            //spriteTransform.eulerAngles -= new Vector3(0, 0, 90f);
         }
         public void OdomSubscribe(string id)
         {
@@ -88,8 +89,10 @@ namespace Controllable
         {
             // For some reason gui updates are not updated here so flag to main loop is used instead
             // TODO: test updates using getter/setter
+            //realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
             realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
+            //realRotation = new Quaternion(odom.pose.pose.orientation.y, -odom.pose.pose.orientation.z, -odom.pose.pose.orientation.x, odom.pose.pose.orientation.w);
             isMessageReceived = true;
         }
 

@@ -8,18 +8,6 @@ namespace Controllable
     {
         public Unit parentUnit;
         
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         public void MoveParentToPlan()
         {
             //TODO: action here
@@ -44,10 +32,6 @@ namespace Controllable
         {
             SetRealPosition(p.position);
             SetRotation(p.rotation);
-            //realPosition = p.position;
-            //realRotation = p.rotation;
-            //transform.position = p.position;
-            //spriteTransform.rotation = p.rotation;
         }
 
         public override void SetSelectedColors(bool isSelected)
