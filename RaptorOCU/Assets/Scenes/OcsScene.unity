@@ -2086,6 +2086,7 @@ MonoBehaviour:
   gridTextTransform: {fileID: 2091113384}
   textXOffset: 0.05
   textYOffset: 0.03
+  frameOffset: 10
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0

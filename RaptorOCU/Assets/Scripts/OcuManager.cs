@@ -110,7 +110,7 @@ public class OcuManager : Singleton<OcuManager>
     }
 
     /* Convex hull algorithm for boundary drawer */
-    HashSet<string> beaconIds = new HashSet<string>();
+    public HashSet<string> beaconIds = new HashSet<string>();
     Stack<Vector2> boundaryDrawPoints;
     Vector2 minPoint = new Vector2();    
     // A utility function to find next to top in a stack 

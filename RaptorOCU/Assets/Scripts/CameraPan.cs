@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Controllable;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,49 +26,89 @@ public class CameraPan : MonoBehaviour
     [SerializeField]
     private float textYOffset = 0.03f;
 
+    [SerializeField]
+    private float frameOffset = 2f;
+    private Vector2 minFrameBound;
+    private Vector2 maxFrameBound;
+    private bool frameCheck = false;
+
     Vector2 lowerBound;
     Vector2 upperBound;
+    Vector2 newLowerBound;
     float gridlineStep = 2.0f;
 
     void MoveCam()
     {
+        //Get camera screen bounds in world space
+        newLowerBound = Camera.main.ScreenToWorldPoint(Vector2.zero);
+        newLowerBound.x = Mathf.Floor(newLowerBound.x);
+        newLowerBound.x -= (newLowerBound.x % gridlineStep);
+        newLowerBound.y = Mathf.Floor(newLowerBound.y);
+        newLowerBound.y -= (newLowerBound.y % gridlineStep);
+        upperBound = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        upperBound.x = Mathf.Ceil(upperBound.x);
+        upperBound.y = Mathf.Ceil(upperBound.y);
+
+        //Update camera min/max bounds from updated beacon positions
+        foreach (string bId in OcuManager.Instance.beaconIds)
+        {
+            Vector2 bPos = OcuManager.Instance.controllableUnits[bId].transform.position;
+            if (!frameCheck)
+            {
+                minFrameBound = bPos;
+                maxFrameBound = bPos;
+                frameCheck = true;
+            }
+            else
+            {
+                if (bPos.x < minFrameBound.x) minFrameBound.x = bPos.x;
+                else if (bPos.x > maxFrameBound.x) maxFrameBound.x = bPos.x;
+                if (bPos.y < minFrameBound.y) minFrameBound.y = bPos.y;
+                else if (bPos.y > maxFrameBound.y) maxFrameBound.y = bPos.y;
+            }
+        }
+        frameCheck = false;
+
+        //Camera pan movement
         if (Input.mousePosition.x > Screen.width - panBorderSize)
         {
-            transform.position += new Vector3(panSpeed * Time.deltaTime, 0, 0);
-            RenderGridlines();
+            if (upperBound.x < maxFrameBound.x + frameOffset)
+            {
+                transform.position += new Vector3(panSpeed * Time.deltaTime, 0, 0);
+                RenderGridlines();
+            }
         }
         else if (Input.mousePosition.x < panBorderSize)
         {
-            transform.position -= new Vector3(panSpeed * Time.deltaTime, 0, 0);
-            RenderGridlines();
+            if (newLowerBound.x > minFrameBound.x - frameOffset)
+            {
+                transform.position -= new Vector3(panSpeed * Time.deltaTime, 0, 0);
+                RenderGridlines();
+            }
         }
-
 
         if (Input.mousePosition.y > Screen.height - panBorderSize)
         {
-            transform.position += new Vector3(0, panSpeed * Time.deltaTime, 0);
-            RenderGridlines();
+            if (upperBound.y < maxFrameBound.y + frameOffset)
+            {
+                transform.position += new Vector3(0, panSpeed * Time.deltaTime, 0);
+                RenderGridlines();
+            }
         }
         else if (Input.mousePosition.y < panBorderSize)
         {
-            transform.position -= new Vector3(0, panSpeed * Time.deltaTime, 0);
-            RenderGridlines();
+            if (newLowerBound.y > minFrameBound.y - frameOffset)
+            {
+                transform.position -= new Vector3(0, panSpeed * Time.deltaTime, 0);
+                RenderGridlines();
+            }
         }
     }
 
     void RenderGridlines()
     {
-        Vector2 newLowerBound = Camera.main.ScreenToWorldPoint(Vector2.zero);
-        newLowerBound.x = Mathf.Floor(newLowerBound.x);
-        newLowerBound.x = newLowerBound.x - (newLowerBound.x % gridlineStep);
-        newLowerBound.y = Mathf.Floor(newLowerBound.y);
-        newLowerBound.y = newLowerBound.y - (newLowerBound.y % gridlineStep);
         if (newLowerBound == lowerBound) return;
-
         lowerBound = newLowerBound;
-        upperBound = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
-        upperBound.x = Mathf.Ceil(upperBound.x);
-        upperBound.y = Mathf.Ceil(upperBound.y);
 
         int childNo = 0;
 
