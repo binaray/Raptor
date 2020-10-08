@@ -30,6 +30,8 @@ namespace Controllable
         {
             base.Init(id, raptorNum, realPos, realRot);
             payloadDisplay.GetComponent<PayloadDisplayItem>().SetText(id);
+            if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.Prodution)
+                StartCoroutine(ConnectionTimeout());
         }
 
         public override void SetSelectedColors(bool isSelected)
@@ -57,13 +59,13 @@ namespace Controllable
             }
             else
             {
-                transform.GetChild(0).GetComponent<SpriteRenderer>().color = payloadColor;
+                transform.GetChild(0).GetComponent<SpriteRenderer>().color = (status == Status.Alive) ? payloadColor : deadColor;
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
                 payloadDisplay.GetComponent<PayloadDisplayItem>().SetSelectionDisplay(false);
-                posText.color = payloadColor;
-                colorKey[0].color = payloadColor;
+                posText.color = (status == Status.Alive) ? payloadColor : deadColor;
+                colorKey[0].color = (status == Status.Alive) ? payloadColor : deadColor;
                 colorKey[0].time = 0.0f;
-                colorKey[1].color = payloadColor;
+                colorKey[1].color = (status == Status.Alive) ? payloadColor : deadColor;
                 colorKey[1].time = 1.0f;
                 alphaKey[0].alpha = 1.0f;
                 alphaKey[0].time = 0.0f;
@@ -72,6 +74,11 @@ namespace Controllable
             }
             gradient.SetKeys(colorKey, alphaKey);
             transform.GetChild(2).GetComponent<LineRenderer>().colorGradient = gradient;
+        }
+
+        protected override void SetDisplayAttachedGuiStatus(Status newStatus)
+        {
+            payloadDisplay.GetComponent<PayloadDisplayItem>().SetLifeDisplay(newStatus);
         }
 
         private void OnDestroy()

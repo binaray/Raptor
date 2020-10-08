@@ -155,13 +155,17 @@ public class CameraPan : MonoBehaviour
         }
     }
 
-    private void Start()
+    void Start()
     {
+        MoveCam();
         RenderGridlines();
     }
+
+
 
     void Update()
     {
         MoveCam();
+        //RenderGridlines();
     }
 }

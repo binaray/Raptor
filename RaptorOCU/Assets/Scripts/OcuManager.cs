@@ -44,7 +44,7 @@ public class OcuManager : Singleton<OcuManager>
         {
             if (value == true && _isPlannerMode == false)
             {
-                for (int i=0; i < payloadCount; i++)
+                for (int i=1; i < payloadCount+1; i++)
                 {
                     string pid = string.Format("p{0}", i);
                     string id = string.Format("v{0}", i);
@@ -64,7 +64,7 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
-    /* Unit prefabs and reference container */
+    /* Unit prefabs and reference containers */
     [SerializeField]
     private Beacon beaconPrefab;
     [SerializeField]
@@ -78,15 +78,21 @@ public class OcuManager : Singleton<OcuManager>
     [SerializeField]
     private GameObject beaconGuiTemplate;
 
-    /* Local mode values */
+    /* Local movement values */
     [SerializeField]
     private float curSpeed = 5f;
     [SerializeField]
     private float rotSpeed = 60f;
+
+    /* Unit count to initialize. 
+     * WARNING: endpoints map to count respectively- 
+     * ie. for payload count of 5, raptor1-raptor5 is connected to*/
     [SerializeField]
     private int beaconCount = 4;
     [SerializeField]
     private int payloadCount = 5;
+
+    public SortedSet<int> operationalPayloadIds = new SortedSet<int>();
 
     /* Scene graphical displays */
     [SerializeField]
@@ -95,11 +101,12 @@ public class OcuManager : Singleton<OcuManager>
     /* Logger */
     private OcuLogger ocuLogger;
 
-    /* Raycasting variables for unit selection on scene */
+    /* Raycasting variables for unit mouse pointer selection on scene */
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
 
+    // Local movement coroutine
     IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target, Quaternion targetRotation)
     {
         while (Vector2.Distance(unit.transform.position, target) > .2f)
@@ -109,7 +116,7 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
-    /* Convex hull algorithm for boundary drawer */
+    /*------ Convex hull algorithm for boundary drawer ------*/
     public HashSet<string> beaconIds = new HashSet<string>();
     Stack<Vector2> boundaryDrawPoints;
     Vector2 minPoint = new Vector2();    
@@ -216,6 +223,7 @@ public class OcuManager : Singleton<OcuManager>
             //print(p.ToString());
         }
     }
+    /*------ Convex hull algorithm END ------*/
 
     void Start()
     {
@@ -237,7 +245,7 @@ public class OcuManager : Singleton<OcuManager>
 
         if (uiTestMode)
         {
-            for (int i = 0; i < beaconCount; i++)
+            for (int i = 1; i < beaconCount+1; i++)
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
@@ -247,13 +255,13 @@ public class OcuManager : Singleton<OcuManager>
                 newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                 b.beaconDisplay = newBeaconDisp;
 
-                b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+                b.Init(id, i, new Vector3((i-1) % 2 * 6, (i-1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
                 beaconIds.Add(id);
             }
 
-            for (int i = 0; i < payloadCount; i++)
+            for (int i = 1; i < payloadCount+1; i++)
             {
                 string id = string.Format("p{0}", i);
                 Payload p = Instantiate(payloadPrefab);
@@ -261,30 +269,32 @@ public class OcuManager : Singleton<OcuManager>
                 newPayloadDisp.SetActive(true);
                 newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
                 p.payloadDisplay = newPayloadDisp;
-                p.Init(id, i, new Vector3(i + 1, 3, 0), new Quaternion(0, 0, 0, 1));
+                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);
+                operationalPayloadIds.Add(i);
             }
             return;
         }
 
-        for (int i = 0; i < beaconCount; i++)
+        for (int i = 1; i < beaconCount+1; i++)
         {
             string id = string.Format("b{0}", i);
             Beacon b = Instantiate(beaconPrefab);
+
             GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
             newBeaconDisp.SetActive(true);
             newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
             b.beaconDisplay = newBeaconDisp;
 
-            b.Init(id, i, new Vector3(i % 2 * 6, i / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+            b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
             controllableUnits.Add(id, b);
             beaconIds.Add(id);
         }
 
-        for (int i = 0; i < payloadCount; i++)
+        for (int i = 1; i < payloadCount+1; i++)
         {
             string id = string.Format("p{0}", i);
             Payload p = Instantiate(payloadPrefab);
@@ -293,27 +303,27 @@ public class OcuManager : Singleton<OcuManager>
             newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
             p.payloadDisplay = newPayloadDisp;
             
-            p.Init(id, i, new Vector3(i + 1, 3, 0), new Quaternion(0, 0, 0, 1));
-            //p.OdomSubscribe("/position");
+            p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
             //Setup of Ros endpoints
-            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i + 1));
-            p.SetupMoveBaseAction(i + 1);
+            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i));
+            p.SetupMoveBaseAction(i);
 
             ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
             controllableUnits.Add(id, p);
         }
     }
 
+    /*-- private variables and method for projection only--*/
     float formationProjScale = 1;
     float degreeOffset = 0;
-    int operationalRobotCount;
+    int projectionRobotCount;
     Vector2[] projectedPositions = new Vector2[10];
     Quaternion[] projectedRotations = new Quaternion[10];
     public Transform projectionRend;
     void ProjectFormation()
     {
-        operationalRobotCount = payloadCount; //TODO replace with real operational robot count
+        projectionRobotCount = (IsPlannerMode) ? payloadCount : operationalPayloadIds.Count; 
         if (Input.GetKey("w"))
             degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
         else if (Input.GetKey("q"))
@@ -331,9 +341,14 @@ public class OcuManager : Singleton<OcuManager>
 
         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         //Draw points evenly on perimeter of circle
-        double d = 360.0 / operationalRobotCount;
-        for (int n = 0; n < operationalRobotCount; n++)
+        double d = 360.0 / projectionRobotCount;
+
+        IEnumerator<int> idEnum = operationalPayloadIds.GetEnumerator();
+        for (int n = 0; n < projectionRobotCount; n++)
         {
+            if (!idEnum.MoveNext()) return;
+            int id = idEnum.Current;
+
             double angle = Math.PI * (d * n + degreeOffset) / 180.0;
 
             float s = (float)Math.Sin(angle);
@@ -352,6 +367,7 @@ public class OcuManager : Singleton<OcuManager>
             p.x = xnew + mousePos2D.x;
             p.y = ynew + mousePos2D.y;
             projectionRend.GetChild(n).position = p;
+            projectionRend.GetChild(n).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = id.ToString(); 
             projectedPositions[n] = p;
             projectedRotations[n] = projectionRend.GetChild(n).rotation;
         }
@@ -364,10 +380,32 @@ public class OcuManager : Singleton<OcuManager>
             degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
         else if (Input.GetKey("q"))
             degreeOffset = (degreeOffset + 1) % 360;
-        projectionRend.GetChild(1).GetChild(0).eulerAngles = Vector3.forward * degreeOffset;
+        projectionRend.GetChild(0).GetChild(0).eulerAngles = Vector3.forward * degreeOffset;
+        projectionRend.GetChild(0).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = SelectedUnit.num.ToString();
         //TODO: replace with own ghost
-        projectionRend.GetChild(1).position = mousePos2D;
-        projectedRotations[1] = projectionRend.GetChild(1).GetChild(0).rotation;
+        projectionRend.GetChild(0).position = mousePos2D;
+        projectedRotations[0] = projectionRend.GetChild(0).GetChild(0).rotation;
+    }
+
+    public void ShowSingleProjectionUnit()
+    {
+        projectionRend.GetChild(0).gameObject.SetActive(true);
+        for (int i = 1; i < payloadCount; i++)
+        {
+            projectionRend.GetChild(i).gameObject.SetActive(false);
+        }
+    }
+
+    public void RefreshProjectionUnits()
+    {
+        for (int i = 0; i < operationalPayloadIds.Count; i++)
+        {
+            projectionRend.GetChild(i).gameObject.SetActive(true);
+        }
+        for (int i = operationalPayloadIds.Count; i < payloadCount; i++)
+        {
+            projectionRend.GetChild(i).gameObject.SetActive(false);
+        }
     }
 
     public void ExecutePlanForAllUnits()
@@ -439,13 +477,26 @@ public class OcuManager : Singleton<OcuManager>
                     ProjectFormation();
                     if (Input.GetMouseButtonDown(1))
                     {
-                        for (int i = 0; i < operationalRobotCount; i++) //TODO: change operational robot count
+                        if (IsPlannerMode)
                         {
-                            if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
-                                StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[i], projectedRotations[i]));
-                            else
-                                controllableUnits["p" + i].SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[i]), projectedRotations[i]); 
-                            ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[i].ToString()));
+                            //FIX THIS
+                            for (int i = 0; i < plannerUnits.Count; i++)
+                            {
+                                StartCoroutine(MoveUnitToPositionCoroutine(plannerUnits[i], projectedPositions[i], projectedRotations[i]));
+                            }
+                        }
+                        else
+                        {
+                            int n = 0;
+                            foreach (int i in operationalPayloadIds)
+                            {
+                                if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
+                                    StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[n], projectedRotations[n]));
+                                else
+                                    controllableUnits["p" + i].SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[n]), projectedRotations[n]);
+                                ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[n].ToString()));
+                                n++;
+                            }
                         }
                     }
                 }
@@ -455,11 +506,11 @@ public class OcuManager : Singleton<OcuManager>
                     if (Input.GetMouseButtonDown(1))
                     {
                         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                        if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
-                            StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[1]));
+                        if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest || IsPlannerMode)
+                            StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[0]));
                         else
                         {
-                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(mousePos2D), projectedRotations[1]);
+                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(mousePos2D), projectedRotations[0]);
                             //SelectedUnit.SetMoveGoal(new Vector3(0f, -3f, 0f), new Quaternion(0, 0, 0.9f, -0.4f));
                         }
                     }

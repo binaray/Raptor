@@ -25,7 +25,7 @@ namespace Controllable
             }
             else
             {
-                transform.GetChild(0).GetComponent<SpriteRenderer>().color = beaconColor;
+                transform.GetChild(0).GetComponent<SpriteRenderer>().color = (status == Status.Alive) ? beaconColor : deadColor;
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
             }
         }

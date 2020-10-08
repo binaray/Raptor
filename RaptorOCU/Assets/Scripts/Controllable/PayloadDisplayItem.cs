@@ -12,7 +12,7 @@ public class PayloadDisplayItem : MonoBehaviour
 
     public void SetLifeDisplay(Controllable.Status status)
     {
-        transform.GetChild(0).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/" + status.ToString());
+        transform.GetChild(0).GetComponent<RawImage>().color = (status == Controllable.Status.Alive) ? Color.green : Color.red;
     }
 
     public void SetSelectionDisplay(bool isSelected)

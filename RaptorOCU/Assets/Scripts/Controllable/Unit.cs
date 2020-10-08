@@ -12,6 +12,7 @@ namespace Controllable
         public static Color beaconColor = new Color(0.41f, 1.00f, 0.96f);
         public static Color payloadColor = new Color(0.00f, 0.82f, 1.00f);
         public static Color plannerColor = new Color(0.00f, 1.00f, 0.00f);
+        public static Color deadColor = new Color(1.00f, 0.00f, 0.00f);
         public static Color focusedColor = Color.white;
         public static Color focusInvColor = Color.black;
 
@@ -94,6 +95,7 @@ namespace Controllable
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             //realRotation = new Quaternion(odom.pose.pose.orientation.y, -odom.pose.pose.orientation.z, -odom.pose.pose.orientation.x, odom.pose.pose.orientation.w);
             isMessageReceived = true;
+            timeElapsed = 0f;
         }
 
         /*-- Joystick (Manual movement) publisher --*/
@@ -133,6 +135,43 @@ namespace Controllable
             GetComponent<MoveBaseActionClient>().CancelGoal();
         }
 
+        /* Check connection lost coroutine */
+        float timeout = 5f;
+        float timeElapsed = 0f;
+        protected IEnumerator ConnectionTimeout()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1f);
+                timeElapsed += 1f;
+                if (timeElapsed >= timeout && status != Status.Dead)
+                {
+                    status = Status.Dead;
+                    SetDisplayAttachedGuiStatus(status);
+                    OcuLogger.Instance.Loge("Lost connection to: " + id);
+                    SetSelectedColors(false);
+                    isMessageReceived = false;
+                    if (this is Payload)
+                    {
+                        OcuManager.Instance.operationalPayloadIds.Remove(num);
+                    }
+                }
+                else if (isMessageReceived == true)
+                {
+                    status = Status.Alive;
+                    SetDisplayAttachedGuiStatus(status);
+                    if (this is Payload)
+                    {
+                        OcuManager.Instance.operationalPayloadIds.Add(num);
+                    }
+                }
+            }
+        }
+        protected virtual void SetDisplayAttachedGuiStatus(Status newStatus)
+        {
+
+        }
+
         /* Local movement methods- GUI updates only */
         public void Rotate(Vector3 rotationVector)
         {
@@ -151,7 +190,7 @@ namespace Controllable
         }
         public void MoveForward(float forwardDelta)
         {
-            Vector3 directionVector = spriteTransform.rotation * Vector3.up;
+            Vector3 directionVector = spriteTransform.rotation * Vector3.right;
             SetWorldPosition(transform.position + directionVector * forwardDelta);
         }
         public void MoveAndRotateTowards(Vector2 target, Quaternion targetRotation, float forwardDelta, float rotationDelta)

@@ -87,6 +87,9 @@ public class UiManager : Singleton<UiManager>
         helpDispText.text = @"-No Selection-
 Left click on any unit on scene for contextual actions";
         selectionButtons.gameObject.SetActive(false);
+
+        unitLifeDisplay.GetComponent<RawImage>().color = Color.white;
+        unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.white;
         unitLifeDisplay.GetChild(0).GetComponent<Text>().text = "-";
         unitText.text = "Nothing Selected";
         unitPosition.text = "-";
@@ -171,6 +174,7 @@ Right click: Confirm";
 
         SetButtonState(pointToPointButton, true);
 
+        OcuManager.Instance.ShowSingleProjectionUnit();
         OcuManager.Instance.projectionRend.gameObject.SetActive(true);
         while (currentState == State.PointToPoint)
         {
@@ -189,6 +193,8 @@ Q/W: Rotate Left/Right   A/S: Scale down/up
 Right click: Confirm";
 
         SetButtonState(pointToFormationButton, true);
+
+        OcuManager.Instance.RefreshProjectionUnits();
         OcuManager.Instance.projectionRend.gameObject.SetActive(true);
         while (currentState == State.PointToFormation)
         {
@@ -431,6 +437,15 @@ WASD or up, down, left, right keys or joystick to move";
     {
         if (OcuManager.Instance.SelectedUnit != null)
         {
+            if ((OcuManager.Instance.SelectedUnit.status == Controllable.Status.Alive)) {
+                unitLifeDisplay.GetComponent<RawImage>().color = Color.green;
+                unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.green;
+            }
+            else
+            {
+                unitLifeDisplay.GetComponent<RawImage>().color = Color.red;
+                unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.red;
+            }
             unitLifeDisplay.GetChild(0).GetComponent<Text>().text = OcuManager.Instance.SelectedUnit.status.ToString();
             unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
