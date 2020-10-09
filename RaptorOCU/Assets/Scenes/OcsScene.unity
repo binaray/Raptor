@@ -3094,6 +3094,7 @@ MonoBehaviour:
   unitLifeDisplay: {fileID: 552999180}
   unitText: {fileID: 699315981}
   unitPosition: {fileID: 1329607917}
+  currentActionText: {fileID: 1180365100}
   selectionButtons: {fileID: 485039941}
   confirmationDialogue: {fileID: 1690303592}
   dialogueHeader: {fileID: 1970619245}
@@ -8998,7 +8999,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 18357281}
   m_HandleRect: {fileID: 18357280}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -11630,8 +11631,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Timeout: 10
   Serializer: 0
-  RosBridgeServerUrl: ws://10.21.129.12:9090
-  buildMode: 0
+  RosBridgeServerUrl: ws://10.21.145.138:9090
+  buildMode: 1
 --- !u!1 &2137493933
 GameObject:
   m_ObjectHideFlags: 0

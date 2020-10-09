@@ -21,9 +21,7 @@ namespace Controllable
             if (isMessageReceived)
             {
                 OdomUpdate();
-                //OcuLogger.Instance.Logv("odom updated"+Time.realtimeSinceStartup);
-                //TODO: timeout and set flag to false if no message received for x seconds
-                posText.text = ((Vector2)realPosition).ToString();
+                posText.text = string.Format("{0}, {1}", realPosition.x.ToString("0.00"), realPosition.y.ToString("0.00")); //((Vector2)realPosition).ToString();
             }
         }
 
@@ -80,6 +78,11 @@ namespace Controllable
         protected override void SetDisplayAttachedGuiStatus(Status newStatus)
         {
             payloadDisplay.GetComponent<PayloadDisplayItem>().SetLifeDisplay(newStatus);
+        }
+
+        public override string GetActionStatus()
+        {
+            return GetComponent<MoveBaseActionClient>().GetActionStatus();
         }
 
         private void OnDestroy()

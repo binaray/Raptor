@@ -94,10 +94,11 @@ namespace Controllable
             spriteTransform.rotation = realRotation;
             //spriteTransform.eulerAngles -= new Vector3(0, 0, 90f);
         }
-        public void OdomSubscribe(string id)
+        public void OdomSubscribe(int i)
         {
-            OcuLogger.Instance.Logv("Subscribing to: " + id);
-            subscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(id, OdomSubscriptionHandler);
+            string odomId = string.Format("raptor{0}/odometry/filtered", i);
+            OcuLogger.Instance.Logv("Subscribing to: " + odomId);
+            subscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(odomId, OdomSubscriptionHandler);
         }
         protected virtual void OdomSubscriptionHandler(nav_msgs.Odometry odom)
         {
@@ -149,6 +150,10 @@ namespace Controllable
         public void CancelMoveBaseAction()
         {
             GetComponent<MoveBaseActionClient>().CancelGoal();
+        }
+        public virtual string GetActionStatus()
+        {
+            return "-";
         }
         #endregion
 

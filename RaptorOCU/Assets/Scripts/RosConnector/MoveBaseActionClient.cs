@@ -38,16 +38,21 @@ public class MoveBaseActionClient : MonoBehaviour
     protected ActionServer<MoveBaseActionGoal, MoveBaseActionFeedback, MoveBaseActionResult>.ActionStates ActionState;
     protected MoveBaseActionGoal ActionGoal;
     protected MoveBaseActionFeedback ActionFeedback;
-    protected MoveBaseActionResult ActionResult = new MoveBaseActionResult();
+    public MoveBaseActionResult ActionResult = new MoveBaseActionResult();
 
     bool dataRc = false;
     private void Update()
     {
-        if (dataRc)
-        {
-            print(ActionFeedback.feedback.base_position.pose.position.x);
-            print(((Status)ActionResult.status.status).ToString());
-        }
+        //if (dataRc)
+        //{
+        //    print(ActionFeedback.feedback.base_position.pose.position.x);
+        //    print(((Status)ActionResult.status.status).ToString());
+        //}
+    }
+
+    public string GetActionStatus()
+    {
+        return ((Status)ActionResult.status.status).ToString();
     }
 
     public void SetupAction(int raptorNo)

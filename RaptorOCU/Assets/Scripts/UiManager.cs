@@ -45,6 +45,8 @@ public class UiManager : Singleton<UiManager>
     [SerializeField]
     private Text unitPosition;
     [SerializeField]
+    private Text currentActionText;
+    [SerializeField]
     private Transform selectionButtons;
 
     //ConfirmationDialogueBox
@@ -452,7 +454,8 @@ WASD or up, down, left, right keys or joystick to move";
     {
         if (OcuManager.Instance.SelectedUnit != null)
         {
-            if ((OcuManager.Instance.SelectedUnit.status == Controllable.Status.Alive)) {
+            Unit selectedUnit = OcuManager.Instance.SelectedUnit;
+            if ((selectedUnit.status == Controllable.Status.Alive)) {
                 unitLifeDisplay.GetComponent<RawImage>().color = Color.green;
                 unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.green;
             }
@@ -461,8 +464,9 @@ WASD or up, down, left, right keys or joystick to move";
                 unitLifeDisplay.GetComponent<RawImage>().color = Color.red;
                 unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.red;
             }
-            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = OcuManager.Instance.SelectedUnit.status.ToString();
-            unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
+            unitLifeDisplay.GetChild(0).GetComponent<Text>().text = selectedUnit.status.ToString();
+            unitPosition.text = string.Format("{0}, {1}", selectedUnit.realPosition.x, selectedUnit.realPosition.y); //((Vector2)selectedUnit.realPosition).ToString();
+            currentActionText.text = selectedUnit.GetActionStatus();
         }
     }
     #endregion

@@ -8,7 +8,7 @@ using System;
 
 public class OcuManager : Singleton<OcuManager>
 {
-    # region Unit prefabs and containers on scene 
+    #region Unit prefabs and containers on scene 
     [SerializeField]
     private Beacon beaconPrefab;
     [SerializeField]
@@ -263,8 +263,16 @@ public class OcuManager : Singleton<OcuManager>
         IEnumerator<int> idEnum = operationalPayloadIds.GetEnumerator();
         for (int n = 0; n < projectionRobotCount; n++)
         {
-            if (!idEnum.MoveNext()) return;
-            int id = idEnum.Current;
+            int id;
+            if (!IsPlannerMode)
+            {
+                if (!idEnum.MoveNext()) return;
+                id = idEnum.Current;
+            }
+            else
+            {
+                id = n + 1;
+            }
 
             double angle = Math.PI * (d * n + degreeOffset) / 180.0;
 
@@ -315,13 +323,23 @@ public class OcuManager : Singleton<OcuManager>
 
     public void RefreshProjectionUnits()
     {
-        for (int i = 0; i < operationalPayloadIds.Count; i++)
+        if (IsPlannerMode)
         {
-            projectionRend.GetChild(i).gameObject.SetActive(true);
+            for (int i = 0; i < payloadCount; i++)
+            {
+                projectionRend.GetChild(i).gameObject.SetActive(true);
+            }
         }
-        for (int i = operationalPayloadIds.Count; i < payloadCount; i++)
+        else
         {
-            projectionRend.GetChild(i).gameObject.SetActive(false);
+            for (int i = 0; i < operationalPayloadIds.Count; i++)
+            {
+                projectionRend.GetChild(i).gameObject.SetActive(true);
+            }
+            for (int i = operationalPayloadIds.Count; i < payloadCount; i++)
+            {
+                projectionRend.GetChild(i).gameObject.SetActive(false);
+            }
         }
     }
     #endregion
@@ -382,42 +400,43 @@ public class OcuManager : Singleton<OcuManager>
                 controllableUnits.Add(id, p);
                 operationalPayloadIds.Add(i);
             }
-            return;
         }
-
-        for (int i = 1; i < beaconCount + 1; i++)
+        else
         {
-            string id = string.Format("b{0}", i);
-            Beacon b = Instantiate(beaconPrefab);
+            for (int i = 1; i < beaconCount + 1; i++)
+            {
+                string id = string.Format("b{0}", i);
+                Beacon b = Instantiate(beaconPrefab);
 
-            GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-            newBeaconDisp.SetActive(true);
-            newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-            b.beaconDisplay = newBeaconDisp;
+                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+                newBeaconDisp.SetActive(true);
+                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+                b.beaconDisplay = newBeaconDisp;
 
-            b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
-            ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
-            controllableUnits.Add(id, b);
-            beaconIds.Add(id);
-        }
+                b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+                ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
+                controllableUnits.Add(id, b);
+                beaconIds.Add(id);
+            }
 
-        for (int i = 1; i < payloadCount + 1; i++)
-        {
-            string id = string.Format("p{0}", i);
-            Payload p = Instantiate(payloadPrefab);
-            GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
-            newPayloadDisp.SetActive(true);
-            newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
-            p.payloadDisplay = newPayloadDisp;
+            for (int i = 1; i < payloadCount + 1; i++)
+            {
+                string id = string.Format("p{0}", i);
+                Payload p = Instantiate(payloadPrefab);
+                GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
+                newPayloadDisp.SetActive(true);
+                newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+                p.payloadDisplay = newPayloadDisp;
 
-            p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
+                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
-            //Setup of Ros endpoints
-            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i));
-            p.SetupMoveBaseAction(i);
+                //Setup of Ros endpoints
+                p.OdomSubscribe(i);
+                p.SetupMoveBaseAction(i);
 
-            ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
-            controllableUnits.Add(id, p);
+                ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
+                controllableUnits.Add(id, p);
+            }
         }
     }
     #endregion
@@ -491,7 +510,6 @@ public class OcuManager : Singleton<OcuManager>
                     {
                         if (IsPlannerMode)
                         {
-                            //FIX THIS
                             for (int i = 0; i < plannerUnits.Count; i++)
                             {
                                 StartCoroutine(MoveUnitToPositionCoroutine(plannerUnits[i], projectedPositions[i], projectedRotations[i]));
