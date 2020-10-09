@@ -334,9 +334,11 @@ WASD or up, down, left, right keys or joystick to move";
         // Load file/folder: file, Allow multiple selection: true
         // Initial path: default (Documents), Title: "Load File", submit button text: "Load"
         if (OcuManager.Instance.IsPlannerMode)
-            yield return FileBrowser.WaitForSaveDialog(false, false, null, "Save Payload Positions as Plan", "Save");
+            yield return FileBrowser.WaitForSaveDialog(false, false, PlayerPrefs.GetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, null), 
+                "Save Payload Positions as Plan", "Save");
         else
-            yield return FileBrowser.WaitForSaveDialog(false, false, null, "Save Planned Payload Positions as Plan", "Save");
+            yield return FileBrowser.WaitForSaveDialog(false, false, PlayerPrefs.GetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, null), 
+                "Save Planned Payload Positions as Plan", "Save");
 
         // Dialog is closed
         // Print whether the user has selected some files/folders or cancelled the operation (FileBrowser.Success)
@@ -351,6 +353,7 @@ WASD or up, down, left, right keys or joystick to move";
                 Debug.Log(FileBrowser.Result[i]);
                 path = FileBrowser.Result[i];
             }
+            PlayerPrefs.SetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, System.IO.Path.GetDirectoryName(path));
 
             RaptorPlanData data = new RaptorPlanData();
             if (OcuManager.Instance.IsPlannerMode)
@@ -392,7 +395,7 @@ WASD or up, down, left, right keys or joystick to move";
         // Show a load file dialog and wait for a response from user
         // Load file/folder: file, Allow multiple selection: true
         // Initial path: default (Documents), Title: "Load File", submit button text: "Load"
-        yield return FileBrowser.WaitForLoadDialog(false, true, null, "Load Plan", "Load");
+        yield return FileBrowser.WaitForLoadDialog(false, true, PlayerPrefs.GetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, null), "Load Plan", "Load");
 
         // Dialog is closed
         // Print whether the user has selected some files/folders or cancelled the operation (FileBrowser.Success)
@@ -402,7 +405,7 @@ WASD or up, down, left, right keys or joystick to move";
         {
             // Print paths of the selected files (FileBrowser.Result) (null, if FileBrowser.Success is false)
             for (int i = 0; i < FileBrowser.Result.Length; i++)
-                Debug.Log(FileBrowser.Result[i]);
+                PlayerPrefs.SetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, System.IO.Path.GetDirectoryName(FileBrowser.Result[i]));
 
             // Read the bytes of the first file via FileBrowserHelpers
             // Contrary to File.ReadAllBytes, this function works on Android 10+, as well
