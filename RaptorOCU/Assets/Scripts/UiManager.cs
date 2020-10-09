@@ -275,6 +275,7 @@ WASD or up, down, left, right keys or joystick to move";
                 buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnManualMovementButtonClick(); });
                 break;
         }
+        buttonTransform.gameObject.SetActive(true);
     }
     public void SetButtonState(Transform buttonTransform, bool state, string newText = null)
     {
