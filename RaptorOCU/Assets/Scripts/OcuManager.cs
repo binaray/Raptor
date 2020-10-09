@@ -8,6 +8,40 @@ using System;
 
 public class OcuManager : Singleton<OcuManager>
 {
+    # region Unit prefabs and containers on scene 
+    [SerializeField]
+    private Beacon beaconPrefab;
+    [SerializeField]
+    private Payload payloadPrefab;
+    [SerializeField]
+    private PlannerUnit plannerUnitPrefab;
+    [SerializeField]
+    private GameObject payloadDispTemplate;
+    [SerializeField]
+    private GameObject beaconGuiTemplate;
+
+    /* Scene graphical displays */
+    [SerializeField]
+    private LineRenderer boundaryLineRenderer;
+    #endregion
+
+    #region User defined variables
+    /* Local movement values */
+    [SerializeField]
+    private float curSpeed = 5f;
+    [SerializeField]
+    private float rotSpeed = 60f;
+
+    /* Unit count to initialize. 
+     * WARNING: endpoints map to count respectively- 
+     * ie. for payload count of 5, raptor1-raptor5 is connected to*/
+    [SerializeField]
+    private int beaconCount = 4;
+    [SerializeField]
+    private int payloadCount = 5;
+    #endregion
+
+    #region Runtime variables
     /* Selected unit id */
     private Unit _selectedUnit = null;
     public Unit SelectedUnit
@@ -31,7 +65,7 @@ public class OcuManager : Singleton<OcuManager>
             }
             else //background is selected
             {
-                ocuLogger.Logv("Nothing selected");
+                //ocuLogger.Logv("Nothing selected");
                 UiManager.Instance.ChangeState(UiManager.State.NoSelection);
             }
         }
@@ -44,7 +78,7 @@ public class OcuManager : Singleton<OcuManager>
         {
             if (value == true && _isPlannerMode == false)
             {
-                for (int i=1; i < payloadCount+1; i++)
+                for (int i = 1; i < payloadCount + 1; i++)
                 {
                     string pid = string.Format("p{0}", i);
                     string id = string.Format("v{0}", i);
@@ -63,41 +97,11 @@ public class OcuManager : Singleton<OcuManager>
             _isPlannerMode = value;
         }
     }
-
-    /* Unit prefabs and reference containers */
-    [SerializeField]
-    private Beacon beaconPrefab;
-    [SerializeField]
-    private Payload payloadPrefab;
-    [SerializeField]
-    private PlannerUnit plannerUnitPrefab;
     public Dictionary<string, Unit> controllableUnits = new Dictionary<string, Unit>();
+    [HideInInspector]
     public List<PlannerUnit> plannerUnits = new List<PlannerUnit>();
-    [SerializeField]
-    private GameObject payloadDispTemplate;
-    [SerializeField]
-    private GameObject beaconGuiTemplate;
-
-    /* Local movement values */
-    [SerializeField]
-    private float curSpeed = 5f;
-    [SerializeField]
-    private float rotSpeed = 60f;
-
-    /* Unit count to initialize. 
-     * WARNING: endpoints map to count respectively- 
-     * ie. for payload count of 5, raptor1-raptor5 is connected to*/
-    [SerializeField]
-    private int beaconCount = 4;
-    [SerializeField]
-    private int payloadCount = 5;
-
     public SortedSet<int> operationalPayloadIds = new SortedSet<int>();
 
-    /* Scene graphical displays */
-    [SerializeField]
-    private LineRenderer boundaryLineRenderer;
-    
     /* Logger */
     private OcuLogger ocuLogger;
 
@@ -105,20 +109,21 @@ public class OcuManager : Singleton<OcuManager>
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
     EventSystem m_EventSystem;
+    #endregion
 
-    // Local movement coroutine
+    #region Local movement coroutine
     IEnumerator MoveUnitToPositionCoroutine(Unit unit, Vector2 target, Quaternion targetRotation)
     {
-        while (Vector2.Distance(unit.transform.position, target) > .2f)
+        while (Vector2.Distance(unit.transform.position, target) > .1f)
         {
             unit.MoveAndRotateTowards(target, targetRotation, curSpeed * Time.deltaTime, rotSpeed * Time.deltaTime);
             yield return null;
         }
     }
+    #endregion
 
-    /*------ Convex hull algorithm for boundary drawer ------*/
+    #region Convex hull algorithm for boundary drawer
     public HashSet<string> beaconIds = new HashSet<string>();
-    Stack<Vector2> boundaryDrawPoints;
     Vector2 minPoint = new Vector2();    
     // A utility function to find next to top in a stack 
     Vector2 NextToTop(Stack<Vector2> S)
@@ -223,97 +228,9 @@ public class OcuManager : Singleton<OcuManager>
             //print(p.ToString());
         }
     }
-    /*------ Convex hull algorithm END ------*/
+    #endregion
 
-    void Start()
-    {
-        ocuLogger = OcuLogger.Instance;
-
-        //Clear UI from any test selections on scene
-        //UiManager.Instance.ShowSelectedDisplayFor(null);
-        UiManager.Instance.ChangeState(UiManager.State.NoSelection);
-
-        m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
-        m_EventSystem = GetComponent<EventSystem>();
-    }
-
-    public void InitUnits(bool uiTestMode = false)
-    {
-        ocuLogger.Logv("Initializing units from available Odometry data..");
-        //populate controllableUnits list
-        //create units onscene
-
-        if (uiTestMode)
-        {
-            for (int i = 1; i < beaconCount+1; i++)
-            {
-                string id = string.Format("b{0}", i);
-                Beacon b = Instantiate(beaconPrefab);
-
-                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-                newBeaconDisp.SetActive(true);
-                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-                b.beaconDisplay = newBeaconDisp;
-
-                b.Init(id, i, new Vector3((i-1) % 2 * 6, (i-1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
-                ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
-                controllableUnits.Add(id, b);
-                beaconIds.Add(id);
-            }
-
-            for (int i = 1; i < payloadCount+1; i++)
-            {
-                string id = string.Format("p{0}", i);
-                Payload p = Instantiate(payloadPrefab);
-                GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
-                newPayloadDisp.SetActive(true);
-                newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
-                p.payloadDisplay = newPayloadDisp;
-                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
-
-                ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
-                controllableUnits.Add(id, p);
-                operationalPayloadIds.Add(i);
-            }
-            return;
-        }
-
-        for (int i = 1; i < beaconCount+1; i++)
-        {
-            string id = string.Format("b{0}", i);
-            Beacon b = Instantiate(beaconPrefab);
-
-            GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-            newBeaconDisp.SetActive(true);
-            newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-            b.beaconDisplay = newBeaconDisp;
-
-            b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
-            ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
-            controllableUnits.Add(id, b);
-            beaconIds.Add(id);
-        }
-
-        for (int i = 1; i < payloadCount+1; i++)
-        {
-            string id = string.Format("p{0}", i);
-            Payload p = Instantiate(payloadPrefab);
-            GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
-            newPayloadDisp.SetActive(true);
-            newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
-            p.payloadDisplay = newPayloadDisp;
-            
-            p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
-
-            //Setup of Ros endpoints
-            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i));
-            p.SetupMoveBaseAction(i);
-
-            ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
-            controllableUnits.Add(id, p);
-        }
-    }
-
+    #region Unit movement projection
     /*-- private variables and method for projection only--*/
     float formationProjScale = 1;
     float degreeOffset = 0;
@@ -407,7 +324,9 @@ public class OcuManager : Singleton<OcuManager>
             projectionRend.GetChild(i).gameObject.SetActive(false);
         }
     }
+    #endregion
 
+    #region Global and planner methods
     public void ExecutePlanForAllUnits()
     {
         foreach (PlannerUnit p in plannerUnits) p.MoveParentToPlan();
@@ -421,6 +340,99 @@ public class OcuManager : Singleton<OcuManager>
             if (u.Value is Payload)
                 u.Value.CancelMoveBaseAction();
         }
+    }
+    #endregion
+
+    #region Unit initialization methods
+    public void InitUnits(bool uiTestMode = false)
+    {
+        ocuLogger.Logv("Initializing units from available Odometry data..");
+        //populate controllableUnits list
+        //create units onscene
+
+        if (uiTestMode)
+        {
+            for (int i = 1; i < beaconCount + 1; i++)
+            {
+                string id = string.Format("b{0}", i);
+                Beacon b = Instantiate(beaconPrefab);
+
+                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+                newBeaconDisp.SetActive(true);
+                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+                b.beaconDisplay = newBeaconDisp;
+
+                b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+                ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
+                controllableUnits.Add(id, b);
+                beaconIds.Add(id);
+            }
+
+            for (int i = 1; i < payloadCount + 1; i++)
+            {
+                string id = string.Format("p{0}", i);
+                Payload p = Instantiate(payloadPrefab);
+                GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
+                newPayloadDisp.SetActive(true);
+                newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+                p.payloadDisplay = newPayloadDisp;
+                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
+
+                ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
+                controllableUnits.Add(id, p);
+                operationalPayloadIds.Add(i);
+            }
+            return;
+        }
+
+        for (int i = 1; i < beaconCount + 1; i++)
+        {
+            string id = string.Format("b{0}", i);
+            Beacon b = Instantiate(beaconPrefab);
+
+            GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+            newBeaconDisp.SetActive(true);
+            newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+            b.beaconDisplay = newBeaconDisp;
+
+            b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+            ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
+            controllableUnits.Add(id, b);
+            beaconIds.Add(id);
+        }
+
+        for (int i = 1; i < payloadCount + 1; i++)
+        {
+            string id = string.Format("p{0}", i);
+            Payload p = Instantiate(payloadPrefab);
+            GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
+            newPayloadDisp.SetActive(true);
+            newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+            p.payloadDisplay = newPayloadDisp;
+
+            p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
+
+            //Setup of Ros endpoints
+            p.OdomSubscribe(string.Format("raptor{0}/odometry/filtered", i));
+            p.SetupMoveBaseAction(i);
+
+            ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
+            controllableUnits.Add(id, p);
+        }
+    }
+    #endregion
+
+    #region Unity runtime
+    void Start()
+    {
+        ocuLogger = OcuLogger.Instance;
+
+        //Clear UI from any test selections on scene
+        //UiManager.Instance.ShowSelectedDisplayFor(null);
+        UiManager.Instance.ChangeState(UiManager.State.NoSelection);
+
+        m_Raycaster = UiManager.Instance.GetComponent<GraphicRaycaster>();
+        m_EventSystem = GetComponent<EventSystem>();
     }
 
     void Update()
@@ -521,5 +533,6 @@ public class OcuManager : Singleton<OcuManager>
         // Bg Graphic updates
         GrahamScanBeacons();
     }
+    #endregion
 }
 

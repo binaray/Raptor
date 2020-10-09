@@ -30,6 +30,7 @@ namespace Controllable
             }
         }
 
+        /*-TO IMPLEMENT:  ROS Camera Subscription-*/
         //private string cameraSubscriptionId;
         //protected void CaneraUpdate()
         //{

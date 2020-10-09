@@ -12,6 +12,7 @@ namespace Controllable
         private void Awake()
         {
             posText = transform.GetChild(2).GetChild(0).GetComponent<TMPro.TextMeshPro>();
+            posText.text = "UNKNOWN";
         }
 
         private void Update()

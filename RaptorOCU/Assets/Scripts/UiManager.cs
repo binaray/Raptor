@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class UiManager : Singleton<UiManager>
 {
+    #region Prefabs, scene references and user defined variables
     //Planner gui graphic overlay
     [SerializeField]
     private GameObject plannerOverlay;
@@ -36,7 +37,7 @@ public class UiManager : Singleton<UiManager>
 
     //SelectedUnitDisp
     [SerializeField]
-    private GameObject selectedUnitDisplay; //unused atm- to remove?
+    private GameObject selectedUnitDisplay;
     [SerializeField]
     private Transform unitLifeDisplay;
     [SerializeField]
@@ -57,16 +58,22 @@ public class UiManager : Singleton<UiManager>
     private Button noButton;
     [SerializeField]
     private Button yesButton;
+    #endregion
+
+    #region Runtime variables
+    public State currentState
+    {
+        get;
+        private set;
+    }
 
     //DynamicSelectionButtons
     private Transform pointToPointButton;
     private Transform pointToFormationButton;
     private Transform manualMovementButton;
+    #endregion
 
-    //LogDisp
-
-
-
+    #region UI states
     public enum State
     {
         NoSelection,
@@ -75,11 +82,6 @@ public class UiManager : Singleton<UiManager>
         PointToPoint,
         PointToFormation,
         ManualMovement
-    }
-    public State currentState
-    {
-        get;
-        private set;
     }
 
     IEnumerator NoSelectionState()
@@ -130,9 +132,9 @@ Left click on any unit on scene for contextual actions";
             pointToFormationButton = selectionButtons.GetChild(1);
             manualMovementButton = selectionButtons.GetChild(2);
 
-            SetButtonType(pointToPointButton, State.PointToPoint);
-            SetButtonType(pointToFormationButton, State.PointToFormation);
-            SetButtonType(manualMovementButton, State.ManualMovement);
+            SetSelectionButtonType(pointToPointButton, State.PointToPoint);
+            SetSelectionButtonType(pointToFormationButton, State.PointToFormation);
+            SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
         else if (selectedUnit is Beacon)
         {
@@ -142,8 +144,8 @@ Left click on any unit on scene for contextual actions";
             manualMovementButton = selectionButtons.GetChild(1);
             selectionButtons.GetChild(2).gameObject.SetActive(false);
 
-            SetButtonType(pointToPointButton, State.PointToPoint);
-            SetButtonType(manualMovementButton, State.ManualMovement);
+            SetSelectionButtonType(pointToPointButton, State.PointToPoint);
+            SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
         else if (selectedUnit is PlannerUnit)
         {
@@ -153,10 +155,15 @@ Left click on any unit on scene for contextual actions";
             pointToFormationButton = selectionButtons.GetChild(1);
             manualMovementButton = selectionButtons.GetChild(2);
 
-            SetButtonType(pointToPointButton, State.PointToPoint);
-            SetButtonType(pointToFormationButton, State.PointToFormation);
-            SetButtonType(manualMovementButton, State.ManualMovement);
+            SetSelectionButtonType(pointToPointButton, State.PointToPoint);
+            SetSelectionButtonType(pointToFormationButton, State.PointToFormation);
+            SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
+
+        //Turn off all buttons in case
+        SetButtonState(pointToPointButton, false);
+        SetButtonState(pointToFormationButton, false);
+        SetButtonState(manualMovementButton, false);
 
         while (currentState == State.UnitSelected)
         {
@@ -216,8 +223,9 @@ WASD or up, down, left, right keys or joystick to move";
         }
         SetButtonState(manualMovementButton, false);
     }
+    #endregion
 
-    /*-- State Changing methods --*/
+    #region UI state Changing methods
     public void ChangeState(State newState)
     {
         currentState = newState;
@@ -234,17 +242,19 @@ WASD or up, down, left, right keys or joystick to move";
     {
         ChangeState(State.SettingsPage);
     }
+    #endregion
 
+    #region Settings Page button functions
     public void SettingsChangeRosAddressButton()
     {
         RaptorConnector.Instance.rosSocket.Close();
         PlayerPrefs.SetString("RosUrl", ipAddressText.text);
         RaptorConnector.Instance.RosConnectionRoutine();
-        //new System.Threading.Thread(RaptorConnector.Instance.ConnectAndWait).Start();
     }
+    #endregion
 
-    /*-- Helper and accessor methods --*/
-    public void SetButtonType(Transform buttonTransform, State state)
+    #region Selection and global button methods
+    private void SetSelectionButtonType(Transform buttonTransform, State state)
     {
         buttonTransform.GetComponent<Button>().onClick.RemoveAllListeners();
         switch (state)
@@ -326,8 +336,9 @@ WASD or up, down, left, right keys or joystick to move";
         SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
             (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
     }
+    #endregion
 
-    /*-- Save and load dialogs --*/
+    #region Save and load plan dialogs
     IEnumerator ShowSaveDialogCoroutine()
     {
         // Show a load file dialog and wait for a response from user
@@ -420,9 +431,9 @@ WASD or up, down, left, right keys or joystick to move";
             //print(res);
         }
     }
+    #endregion
 
-
-    /*-- Ui setup and updates --*/
+    #region Unity runtime
     private void Start()
     {
         executePlanButton.onClick.AddListener(() => { OcuManager.Instance.ExecutePlanForAllUnits(); });
@@ -453,4 +464,5 @@ WASD or up, down, left, right keys or joystick to move";
             unitPosition.text = ((Vector2)OcuManager.Instance.SelectedUnit.realPosition).ToString();
         }
     }
+    #endregion
 }

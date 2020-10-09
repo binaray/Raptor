@@ -8,15 +8,16 @@ namespace Controllable
 {
     public class Unit : MonoBehaviour
     {
-        /*Static constant reference vars*/
+        #region Static constant variables
         public static Color beaconColor = new Color(0.41f, 1.00f, 0.96f);
         public static Color payloadColor = new Color(0.00f, 0.82f, 1.00f);
         public static Color plannerColor = new Color(0.00f, 1.00f, 0.00f);
         public static Color deadColor = new Color(1.00f, 0.00f, 0.00f);
         public static Color focusedColor = Color.white;
         public static Color focusInvColor = Color.black;
+        #endregion
 
-        /*Unit properties*/
+        #region Unit runtime variables
         // Real positional data onsite
         protected Vector3 _realPos;
         protected Quaternion _realRot;
@@ -31,13 +32,17 @@ namespace Controllable
         //[ReadOnlyAttribute]
         public Status status;
 
-        /* Getter, setters*/
         public Vector3 realPosition;
         public Quaternion realRotation;
-        public string id {
+        
+        //Designated unit id
+        public string id
+        {
             get { return _id; }
             set { _id = value; }
         }
+
+        //Designated unit number
         public int num
         {
             get { return _num; }
@@ -49,7 +54,9 @@ namespace Controllable
 
         public Transform spriteTransform;
         protected bool isMessageReceived = false;
+        #endregion
 
+        #region Unit initialization and display methods
         public virtual void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
             spriteTransform = transform.GetChild(0);
@@ -74,7 +81,13 @@ namespace Controllable
             }
         }
 
-        /*-- SUBSCRIPTION HANDLERS TO IMPLEMENT --*/
+        //base method to be overriden by payload and beacon
+        protected virtual void SetDisplayAttachedGuiStatus(Status newStatus)
+        {
+        }
+        #endregion
+
+        #region ROS Odometry subscription methods
         protected void OdomUpdate()
         {
             transform.position = WorldScaler.RealToWorldPosition(realPosition);
@@ -97,7 +110,9 @@ namespace Controllable
             isMessageReceived = true;
             timeElapsed = 0f;
         }
+        #endregion
 
+        #region ROS Joystick publisher methods /*Not yet implemented!*/
         /*-- Joystick (Manual movement) publisher --*/
         private JoyAxisReader[] JoyAxisReaders;
         private JoyButtonReader[] JoyButtonReaders;
@@ -119,8 +134,9 @@ namespace Controllable
             message.axes[1] = Input.GetAxis("Vertical");
             RaptorConnector.Instance.rosSocket.Publish(JoyPublicationId, message);
         }
+        #endregion
 
-        /*-- Raptor movement- Requires ROS connection --*/
+        #region ROS move base action methods
         public void SetupMoveBaseAction(int num)
         {
             //TODO: HANDLE BEACON ID
@@ -134,8 +150,9 @@ namespace Controllable
         {
             GetComponent<MoveBaseActionClient>().CancelGoal();
         }
+        #endregion
 
-        /* Check connection lost coroutine */
+        #region Check connection timeout coroutine
         float timeout = 5f;
         float timeElapsed = 0f;
         protected IEnumerator ConnectionTimeout()
@@ -167,12 +184,9 @@ namespace Controllable
                 }
             }
         }
-        protected virtual void SetDisplayAttachedGuiStatus(Status newStatus)
-        {
+        #endregion
 
-        }
-
-        /* Local movement methods- GUI updates only */
+        #region Local movement methods
         public void Rotate(Vector3 rotationVector)
         {
             spriteTransform.Rotate(rotationVector);
@@ -198,7 +212,9 @@ namespace Controllable
             SetWorldPosition(Vector2.MoveTowards(transform.position, target, forwardDelta));
             SetRotation(Quaternion.RotateTowards(targetRotation, Quaternion.FromToRotation(transform.position, target), rotationDelta));
         }
+        #endregion
 
+        #region Set position methods
         public void SetRealPosition(Vector3 realPos)
         {
             transform.position = WorldScaler.RealToWorldPosition(realPos);
@@ -209,8 +225,11 @@ namespace Controllable
             transform.position = worldPos;
             realPosition = WorldScaler.WorldToRealPosition(worldPos);
         }
+        #endregion
     }
 
+
+    //Unit status
     public enum Status
     {
         Alive,

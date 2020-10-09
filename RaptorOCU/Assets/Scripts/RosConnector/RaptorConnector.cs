@@ -10,7 +10,7 @@ using rosapi = RosSharp.RosBridgeClient.Services.RosApi;
 using RosSharp.RosBridgeClient.Services;
 using RosSharp.RosBridgeClient.Messages;
 
-/*-- Built with reference to RosConnector script main changes are in handling unit initialization and using coroutines --*/
+/*-- Built with reference to RosConnector script; Changes: unit initialization and using coroutines --*/
 public class RaptorConnector : Singleton<RaptorConnector>
 {
     public int Timeout = 10;
@@ -22,8 +22,6 @@ public class RaptorConnector : Singleton<RaptorConnector>
 
     private ManualResetEvent isConnected = new ManualResetEvent(false);
     private OcuLogger ocuLogger;
-
-    string subscriptionId = "";
 
     void Start()
     {
@@ -83,6 +81,7 @@ public class RaptorConnector : Singleton<RaptorConnector>
     }
 
 
+    #region Test functions
     /*-- Service client handlers (working test) --*/
     public void CallService()
     {
@@ -107,4 +106,5 @@ public class RaptorConnector : Singleton<RaptorConnector>
         //UnityEngine.Debug.Log("Sum: "+message.sum);
         ocuLogger.Logv("Status: " + message.status);
     }
+    #endregion
 }

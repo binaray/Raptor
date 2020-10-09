@@ -11594,14 +11594,14 @@ MonoBehaviour:
     type: 3}
   plannerUnitPrefab: {fileID: 7640205335383747767, guid: 96395931749a6454caede7700faf925b,
     type: 3}
-  plannerUnits: []
   payloadDispTemplate: {fileID: 1606411131}
   beaconGuiTemplate: {fileID: 657181774}
+  boundaryLineRenderer: {fileID: 1892530628}
   curSpeed: 5
   rotSpeed: 60
   beaconCount: 4
   payloadCount: 10
-  boundaryLineRenderer: {fileID: 1892530628}
+  plannerUnits: []
   projectionRend: {fileID: 108975057}
 --- !u!114 &2135344960
 MonoBehaviour:
