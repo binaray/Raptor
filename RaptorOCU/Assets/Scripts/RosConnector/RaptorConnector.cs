@@ -26,6 +26,11 @@ public class RaptorConnector : Singleton<RaptorConnector>
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
+        string ip = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_IP, null);
+        if (ip != null)
+        {
+            SetRosIp(ip);
+        }
         if (buildMode==BuildMode.UiTest)
             OcuManager.Instance.InitUnits(true);
         else if (buildMode==BuildMode.Prodution)
@@ -33,16 +38,31 @@ public class RaptorConnector : Singleton<RaptorConnector>
     }
 
     /*-- Ros socket initializers and handlers --*/
+    public void SetRosIp(string ip)
+    {
+        PlayerPrefs.SetString(PlayerPrefsConstants.ROS_BRIDGE_IP, ip);
+        RosBridgeServerUrl = "ws://" + ip + ":9090";
+    }
     public void RosConnectionRoutine() { StartCoroutine(ConnectAndWait()); }
     IEnumerator ConnectAndWait()
     {
         ocuLogger.Logw("--Attempting to connect to ROS--");
         //RosBridgeServerUrl = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_URL, null);
-
-        rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
+        try
+        {
+            rosSocket = ConnectToRos(RosBridgeServerUrl, OnConnected, OnClosed, Serializer);
+        }
+        catch(System.Exception e)
+        {
+            ocuLogger.Loge(e.Message);
+            UiManager.Instance.ReconnectDialog();
+        }
         yield return new WaitForSeconds(2f);
         if (!isConnected.WaitOne(0))
+        {
             ocuLogger.Loge("Failed to connect to RosBridge: " + RosBridgeServerUrl);
+            UiManager.Instance.ReconnectDialog();
+        }
         else
         {
             OcuManager.Instance.InitUnits();

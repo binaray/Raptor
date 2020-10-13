@@ -57,6 +57,8 @@ public class UiManager : Singleton<UiManager>
     [SerializeField]
     private Text dialogueText;
     [SerializeField]
+    private InputField reconnectIpInput;
+    [SerializeField]
     private Button noButton;
     [SerializeField]
     private Button yesButton;
@@ -249,9 +251,10 @@ WASD or up, down, left, right keys or joystick to move";
     #region Settings Page button functions
     public void SettingsChangeRosAddressButton()
     {
-        RaptorConnector.Instance.rosSocket.Close();
-        PlayerPrefs.SetString("RosUrl", ipAddressText.text);
-        RaptorConnector.Instance.RosConnectionRoutine();
+        //TODO: REMOVE OR FIX THIS
+        //RaptorConnector.Instance.rosSocket.Close();
+        //PlayerPrefs.SetString(PlayerPrefsConstants.ROS_BRIDGE_IP, ipAddressText.text);
+        //RaptorConnector.Instance.RosConnectionRoutine();
     }
     #endregion
 
@@ -338,6 +341,21 @@ WASD or up, down, left, right keys or joystick to move";
         plannerOverlay.SetActive(OcuManager.Instance.IsPlannerMode);
         SetButtonState(plannerModeButtonTransform, OcuManager.Instance.IsPlannerMode,
             (OcuManager.Instance.IsPlannerMode) ? "Planner Mode: On" : "Planner Mode: Off");
+    }
+    #endregion
+
+    #region Reconnect Dialog
+    public void ReconnectDialog()
+    {
+        reconnectIpInput.text = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_IP, null);
+        confirmationDialogue.SetActive(true);
+    }
+
+    public void ReconnectWithNewIp()
+    {
+        RaptorConnector.Instance.SetRosIp(reconnectIpInput.text);
+        RaptorConnector.Instance.RosConnectionRoutine();
+        confirmationDialogue.SetActive(false);
     }
     #endregion
 

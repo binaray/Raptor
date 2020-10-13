@@ -182,6 +182,7 @@ namespace Controllable
                 {
                     status = Status.Alive;
                     SetDisplayAttachedGuiStatus(status);
+                    SetSelectedColors(false);
                     if (this is Payload)
                     {
                         OcuManager.Instance.operationalPayloadIds.Add(num);
