@@ -74,6 +74,7 @@ public class UiManager : Singleton<UiManager>
     //DynamicSelectionButtons
     private Transform pointToPointButton;
     private Transform pointToFormationButton;
+    private Transform cPointToFormationButton;
     private Transform manualMovementButton;
     #endregion
 
@@ -85,6 +86,7 @@ public class UiManager : Singleton<UiManager>
         UnitSelected,
         PointToPoint,
         PointToFormation,
+        PointToCustomFormation,
         ManualMovement
     }
 
@@ -130,30 +132,36 @@ Left click on any unit on scene for contextual actions";
         selectionButtons.gameObject.SetActive(true);
         if (selectedUnit is Payload)
         {
-            helpDispText.text = @"-Payload " + selectedUnit.id + " Selected-";
+            helpDispText.text = "-Payload " + selectedUnit.id + " Selected-\n" +
+"ESC key to deselect";
             unitText.text = "Payload " + selectedUnit.id;
             pointToPointButton = selectionButtons.GetChild(0);
             pointToFormationButton = selectionButtons.GetChild(1);
-            manualMovementButton = selectionButtons.GetChild(2);
+            cPointToFormationButton = selectionButtons.GetChild(2);
+            manualMovementButton = selectionButtons.GetChild(3);
 
             SetSelectionButtonType(pointToPointButton, State.PointToPoint);
             SetSelectionButtonType(pointToFormationButton, State.PointToFormation);
+            SetSelectionButtonType(cPointToFormationButton, State.PointToCustomFormation);
             SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
         else if (selectedUnit is Beacon)
         {
-            helpDispText.text = @"-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-";
+            helpDispText.text = "-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-\n" +
+"ESC key to deselect";
             unitText.text = "Beacon " + selectedUnit.id;
             pointToPointButton = selectionButtons.GetChild(0);
             manualMovementButton = selectionButtons.GetChild(1);
             selectionButtons.GetChild(2).gameObject.SetActive(false);
+            selectionButtons.GetChild(3).gameObject.SetActive(false);
 
             SetSelectionButtonType(pointToPointButton, State.PointToPoint);
             SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
         else if (selectedUnit is PlannerUnit)
         {
-            helpDispText.text = @"-Payload Planner" + selectedUnit.id + " Selected-";
+            helpDispText.text = "-Payload Planner" + selectedUnit.id + " Selected-\n" +
+"ESC key to deselect";
             unitText.text = "Payload Planner" + selectedUnit.id;
             pointToPointButton = selectionButtons.GetChild(0);
             pointToFormationButton = selectionButtons.GetChild(1);
@@ -215,6 +223,26 @@ Right click: Confirm";
         if (currentState!=State.PointToPoint) OcuManager.Instance.projectionRend.gameObject.SetActive(false);
     }
 
+    IEnumerator PointToCustomFormationState()
+    {
+        helpDispText.text = @"-Point to Custom Formation Movement Mode-
+All payloads will form formation at selected position
+
+Q/W: Rotate Left/Right
+Right click: Confirm";
+
+        SetButtonState(cPointToFormationButton, true);
+
+        OcuManager.Instance.RefreshProjectionUnits();
+        OcuManager.Instance.projectionRend.gameObject.SetActive(true);
+        while (currentState == State.PointToCustomFormation)
+        {
+            yield return null;
+        }
+        SetButtonState(cPointToFormationButton, false);
+        if (currentState != State.PointToPoint) OcuManager.Instance.projectionRend.gameObject.SetActive(false);
+    }
+
     IEnumerator ManualMovementState()
     {
         helpDispText.text = @"-Manual Movement Mode-
@@ -274,6 +302,11 @@ WASD or up, down, left, right keys or joystick to move";
                 buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_f");
                 buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnPointToFormationButtonClick(); });
                 break;
+            case State.PointToCustomFormation:
+                buttonTransform.GetChild(0).GetComponent<Text>().text = "Point to\nCustom Formation";
+                buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/p_to_cf");
+                buttonTransform.GetComponent<Button>().onClick.AddListener(delegate { OnPointToCustomFormationButtonClick(); });
+                break;
             case State.ManualMovement:
                 buttonTransform.GetChild(0).GetComponent<Text>().text = "Manual\nMovement";
                 buttonTransform.GetChild(1).GetComponent<RawImage>().texture = Resources.Load<Texture>("Sprites/man_");
@@ -324,6 +357,18 @@ WASD or up, down, left, right keys or joystick to move";
             ChangeState(State.PointToFormation);
         }
     }
+    public void OnPointToCustomFormationButtonClick()
+    {
+        if (currentState == State.PointToCustomFormation)
+        {
+            ChangeState(State.UnitSelected);
+        }
+        else
+        {
+            StartCoroutine(ShowLoadCustomFormationDialogCoroutine());
+        }
+    }
+
     public void OnManualMovementButtonClick()
     {
         if (currentState == State.UnitSelected)
@@ -450,6 +495,41 @@ WASD or up, down, left, right keys or joystick to move";
                 OcuManager.Instance.plannerUnits[i].LoadPayloadData(data.payloadDatas[i]);
             }
             //print(res);
+        }
+    }
+    IEnumerator ShowLoadCustomFormationDialogCoroutine()
+    {
+        yield return FileBrowser.WaitForLoadDialog(false, true, PlayerPrefs.GetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, null), "Load Custom Formation", "Load");
+
+        if (FileBrowser.Success)
+        {
+            for (int i = 0; i < FileBrowser.Result.Length; i++)
+                PlayerPrefs.SetString(PlayerPrefsConstants.DEFAULT_SAVE_PATH, System.IO.Path.GetDirectoryName(FileBrowser.Result[i]));
+            byte[] bytes = FileBrowserHelpers.ReadBytesFromFile(FileBrowser.Result[0]);
+            RaptorPlanData data = JsonUtility.FromJson<RaptorPlanData>(System.Text.Encoding.UTF8.GetString(bytes));
+
+            List<PayloadData> customFormationData = new List<PayloadData>();
+            PayloadData pivot = new PayloadData();
+            pivot.position = Vector3.zero;
+            pivot.rotation = data.payloadDatas[0].rotation;
+            customFormationData.Add(pivot);
+            for (int i = 1; i < data.payloadDatas.Count; i++)
+            {
+                PayloadData pd = new PayloadData();
+                pd.position = data.payloadDatas[i].position - data.payloadDatas[0].position;
+                pd.position = WorldScaler.RealToWorldPosition(pd.position);
+                pd.rotation = data.payloadDatas[i].rotation;
+                customFormationData.Add(pd);
+            }
+            OcuManager.Instance.customFormationData = customFormationData;
+
+            print(OcuManager.Instance.customFormationData.Count);
+            ChangeState(State.PointToCustomFormation);
+        }
+        else
+        {
+            if (OcuManager.Instance.SelectedUnit != null) ChangeState(State.UnitSelected);
+            else ChangeState(State.NoSelection);
         }
     }
     #endregion

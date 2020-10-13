@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WorldScaler : Singleton<WorldScaler>
 {
-    public static int worldScale = 2;
+    public static int worldScale = 2;   //Current scale 2 units in Unity to 2m irl
 
     public static Vector3 WorldToRealPosition(Vector3 worldPos)
     {
