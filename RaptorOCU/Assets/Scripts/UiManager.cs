@@ -563,7 +563,7 @@ WASD or up, down, left, right keys or joystick to move";
                 unitLifeDisplay.GetChild(0).GetComponent<Text>().color = Color.red;
             }
             unitLifeDisplay.GetChild(0).GetComponent<Text>().text = selectedUnit.status.ToString();
-            unitPosition.text = string.Format("{0}, {1}", selectedUnit.realPosition.x, selectedUnit.realPosition.y); //((Vector2)selectedUnit.realPosition).ToString();
+            unitPosition.text = string.Format("{0}, {1}", selectedUnit.realPosition.x.ToString("0.00"), selectedUnit.realPosition.y.ToString("0.00")); //((Vector2)selectedUnit.realPosition).ToString();
             currentActionText.text = selectedUnit.GetActionStatus();
         }
     }

@@ -185,10 +185,12 @@ namespace Controllable
                 }
                 else if (isMessageReceived == true)
                 {
-                    //timeElapsed = 0;
                     status = Status.Alive;
                     SetDisplayAttachedGuiStatus(status);
-                    //SetSelectedColors(false);
+
+                    if (OcuManager.Instance.SelectedUnit == this) SetSelectedColors(true);
+                    else SetSelectedColors(false);
+
                     if (this is Payload)
                     {
                         OcuManager.Instance.operationalPayloadIds.Add(num);

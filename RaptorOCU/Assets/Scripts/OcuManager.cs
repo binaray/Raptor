@@ -434,6 +434,7 @@ public class OcuManager : Singleton<OcuManager>
                 GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
                 newPayloadDisp.SetActive(true);
                 newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+                newPayloadDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = p; });
                 p.payloadDisplay = newPayloadDisp;
                 p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
@@ -471,6 +472,7 @@ public class OcuManager : Singleton<OcuManager>
                 GameObject newPayloadDisp = Instantiate(payloadDispTemplate);
                 newPayloadDisp.SetActive(true);
                 newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
+                newPayloadDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = p; });
                 p.payloadDisplay = newPayloadDisp;
 
                 p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
