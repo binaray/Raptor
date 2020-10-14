@@ -78,6 +78,7 @@ public class OcuManager : Singleton<OcuManager>
         {
             if (value == true && _isPlannerMode == false)
             {
+                targetRend.gameObject.SetActive(false); 
                 for (int i = 1; i < payloadCount + 1; i++)
                 {
                     string pid = string.Format("p{0}", i);
@@ -238,6 +239,7 @@ public class OcuManager : Singleton<OcuManager>
     Vector2[] projectedPositions = new Vector2[10];
     Quaternion[] projectedRotations = new Quaternion[10];
     public Transform projectionRend;
+    public Transform targetRend;
     void ProjectFormation()
     {
         projectionRobotCount = (IsPlannerMode) ? payloadCount : operationalPayloadIds.Count; 
@@ -350,6 +352,7 @@ public class OcuManager : Singleton<OcuManager>
         projectionRend.GetChild(0).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = SelectedUnit.num.ToString();
         //TODO: replace with own ghost
         projectionRend.GetChild(0).position = mousePos2D;
+        projectedPositions[0] = mousePos2D;
         projectedRotations[0] = projectionRend.GetChild(0).GetChild(0).rotation;
     }
 
@@ -383,6 +386,36 @@ public class OcuManager : Singleton<OcuManager>
             }
         }
     }
+
+    public void RegisterTargetProjection(bool isSingle = false)
+    {
+        targetRend.gameObject.SetActive(true);
+        if (isSingle)
+        {
+            targetRend.GetChild(0).position = projectionRend.GetChild(0).position;
+            targetRend.GetChild(0).GetChild(0).rotation = projectionRend.GetChild(0).GetChild(0).rotation;
+            targetRend.GetChild(0).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = projectionRend.GetChild(0).GetChild(1).GetComponent<TMPro.TextMeshPro>().text;
+            targetRend.GetChild(0).gameObject.SetActive(true);
+            for (int i = 1; i < payloadCount; i++)
+            {
+                targetRend.GetChild(i).gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < operationalPayloadIds.Count; i++)
+            {
+                targetRend.GetChild(i).position = projectionRend.GetChild(i).position;
+                targetRend.GetChild(i).GetChild(0).rotation = projectionRend.GetChild(i).GetChild(0).rotation;
+                targetRend.GetChild(i).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = projectionRend.GetChild(i).GetChild(1).GetComponent<TMPro.TextMeshPro>().text;
+                targetRend.GetChild(i).gameObject.SetActive(true);
+            }
+            for (int i = operationalPayloadIds.Count; i < payloadCount; i++)
+            {
+                targetRend.GetChild(i).gameObject.SetActive(false);
+            }
+        }
+    }
     #endregion
 
     #region Global and planner methods
@@ -393,6 +426,7 @@ public class OcuManager : Singleton<OcuManager>
 
     public void StopAllUnits()
     {
+        targetRend.gameObject.SetActive(false);
         foreach (KeyValuePair<string, Unit> u in controllableUnits)
         {
             //currently only payloads support point to point movement
@@ -570,6 +604,7 @@ public class OcuManager : Singleton<OcuManager>
                         else
                         {
                             int n = 0;
+                            RegisterTargetProjection();
                             foreach (int i in operationalPayloadIds)
                             {
                                 if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
@@ -587,12 +622,13 @@ public class OcuManager : Singleton<OcuManager>
                     ProjectPoint();
                     if (Input.GetMouseButtonDown(1))
                     {
-                        Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                        //Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                         if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest || IsPlannerMode)
-                            StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, mousePos2D, projectedRotations[0]));
+                            StartCoroutine(MoveUnitToPositionCoroutine(SelectedUnit, projectedPositions[0], projectedRotations[0]));
                         else
                         {
-                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(mousePos2D), projectedRotations[0]);
+                            RegisterTargetProjection(true);
+                            SelectedUnit.SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[0]), projectedRotations[0]);
                             //SelectedUnit.SetMoveGoal(new Vector3(0f, -3f, 0f), new Quaternion(0, 0, 0.9f, -0.4f));
                         }
                     }
