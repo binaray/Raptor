@@ -280,9 +280,7 @@ public class OcuManager : Singleton<OcuManager>
             float c = (float)Math.Cos(angle);
 
             // translate point back to origin:
-            Vector3 p = new Vector2(mousePos2D.x, mousePos2D.y + formationProjScale);
-            p.x -= mousePos2D.x;
-            p.y -= mousePos2D.y;
+            Vector3 p = new Vector2(0, formationProjScale);
 
             // rotate point
             float xnew = p.x * c - p.y * s;
@@ -301,9 +299,16 @@ public class OcuManager : Singleton<OcuManager>
     public List<PayloadData> customFormationData;
     void ProjectCustomFormation()
     {
+        if (Input.GetKey("w"))
+            degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
+        else if (Input.GetKey("q"))
+            degreeOffset = (degreeOffset + 1) % 360;
+        double angle = Math.PI * degreeOffset / 180.0;
+        float s = (float)Math.Sin(angle);
+        float c = (float)Math.Cos(angle);
+
         projectionRobotCount = (IsPlannerMode) ? payloadCount : operationalPayloadIds.Count;
         //projectionRobotCount = customFormationData.Count;
-
         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         IEnumerator<int> idEnum = operationalPayloadIds.GetEnumerator();
@@ -320,9 +325,12 @@ public class OcuManager : Singleton<OcuManager>
                 id = n + 1;
             }
 
-            Vector2 p = new Vector2();
-            p.x = mousePos2D.x - customFormationData[n].position.x;
-            p.y = mousePos2D.y - customFormationData[n].position.y;
+            Vector2 p = new Vector2(customFormationData[n].position.x, customFormationData[n].position.y);
+            float xnew = p.x * c - p.y * s;
+            float ynew = p.x * s + p.y * c;
+
+            p.x = xnew + mousePos2D.x;//customFormationData[n].position.x;
+            p.y = ynew + mousePos2D.y;//customFormationData[n].position.y;
             projectionRend.GetChild(n).position = p;
             projectionRend.GetChild(n).GetChild(0).rotation = customFormationData[n].rotation;
             projectionRend.GetChild(n).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = id.ToString();
