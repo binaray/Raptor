@@ -85,13 +85,18 @@ namespace Controllable
         protected virtual void SetDisplayAttachedGuiStatus(Status newStatus)
         {
         }
+
+        public void RefreshPositionDisplay()
+        {
+            transform.position = WorldScaler.RealToWorldPosition(realPosition);
+            spriteTransform.rotation = realRotation;
+        }
         #endregion
 
         #region ROS Odometry subscription methods
         protected void OdomUpdate()
         {
-            transform.position = WorldScaler.RealToWorldPosition(realPosition);
-            spriteTransform.rotation = realRotation;
+            RefreshPositionDisplay();
             //spriteTransform.eulerAngles -= new Vector3(0, 0, 90f);
         }
         public void OdomSubscribe(int i)
@@ -180,9 +185,10 @@ namespace Controllable
                 }
                 else if (isMessageReceived == true)
                 {
+                    //timeElapsed = 0;
                     status = Status.Alive;
                     SetDisplayAttachedGuiStatus(status);
-                    SetSelectedColors(false);
+                    //SetSelectedColors(false);
                     if (this is Payload)
                     {
                         OcuManager.Instance.operationalPayloadIds.Add(num);

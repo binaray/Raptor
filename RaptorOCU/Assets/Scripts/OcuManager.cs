@@ -445,7 +445,7 @@ public class OcuManager : Singleton<OcuManager>
         else
         {
             List<Vector3> beaconPPos = new List<Vector3>();
-            beaconPPos.Add(new Vector3(0, 0, 0));
+            beaconPPos.Add(new Vector3(0, 10, 0));
             beaconPPos.Add(new Vector3(4, -13, 0));
             beaconPPos.Add(new Vector3(24, 0, 0));
             for (int i = 1; i < beaconCount + 1; i++)
@@ -482,6 +482,13 @@ public class OcuManager : Singleton<OcuManager>
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);
             }
+        }
+    }
+    public void RefreshUnitPos()
+    {
+        foreach (KeyValuePair<string,Unit> u in controllableUnits)
+        {
+            u.Value.RefreshPositionDisplay();
         }
     }
     #endregion

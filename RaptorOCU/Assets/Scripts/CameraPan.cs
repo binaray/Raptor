@@ -105,9 +105,9 @@ public class CameraPan : MonoBehaviour
         }
     }
 
-    void RenderGridlines()
+    void RenderGridlines(bool refresh = false)
     {
-        if (newLowerBound == lowerBound) return;
+        if (newLowerBound == lowerBound && !refresh) return;
         lowerBound = newLowerBound;
 
         int childNo = 0;
@@ -155,10 +155,26 @@ public class CameraPan : MonoBehaviour
         }
     }
 
-    void Start()
+    public void ZoomIn() { 
+        WorldScaler.worldScale = 2;
+        RefreshScale();
+    }
+
+    public void ZoomOut() { 
+        WorldScaler.worldScale = 1;
+        RefreshScale();
+    }
+
+    private void RefreshScale()
     {
         MoveCam();
-        RenderGridlines();
+        RenderGridlines(true);
+        OcuManager.Instance.RefreshUnitPos();
+    }
+
+    void Start()
+    {
+        RefreshScale();
     }
 
 
