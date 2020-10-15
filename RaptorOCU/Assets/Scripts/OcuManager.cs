@@ -231,18 +231,23 @@ public class OcuManager : Singleton<OcuManager>
     }
     #endregion
 
-    #region Unit movement projection
+    #region Unit movement projection and self fixing
     /*-- private variables and method for projection only--*/
     float formationProjScale = 1;
     float degreeOffset = 0;
     int projectionRobotCount;
     Vector2[] projectedPositions = new Vector2[10];
     Quaternion[] projectedRotations = new Quaternion[10];
+
     public Transform projectionRend;
     public Transform targetRend;
+    private bool hasTargetFormation = false;
+    private int targetCount;
     void ProjectFormation()
     {
-        projectionRobotCount = (IsPlannerMode) ? payloadCount : operationalPayloadIds.Count; 
+        projectionRobotCount =  operationalPayloadIds.Count;
+        targetCount = projectionRobotCount;
+
         if (Input.GetKey("w"))
             degreeOffset = (--degreeOffset < 0) ? (360 + degreeOffset) : degreeOffset;
         else if (Input.GetKey("q"))
@@ -266,15 +271,15 @@ public class OcuManager : Singleton<OcuManager>
         for (int n = 0; n < projectionRobotCount; n++)
         {
             int id;
-            if (!IsPlannerMode)
+            //if (!IsPlannerMode)
             {
                 if (!idEnum.MoveNext()) return;
                 id = idEnum.Current;
             }
-            else
-            {
-                id = n + 1;
-            }
+            //else
+            //{
+            //    id = n + 1;
+            //}
 
             double angle = Math.PI * (d * n + degreeOffset) / 180.0;
 
@@ -298,6 +303,50 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
+    Vector2 savedFormationPivot;
+    float savedDegreeOffset;
+    float savedScale;
+    void SelfFixFormation()
+    {
+        StopAllUnits();
+        ocuLogger.Logw("Formation self fix initiated");
+        projectionRobotCount = operationalPayloadIds.Count;
+        double d = 360.0 / projectionRobotCount;
+        IEnumerator<int> idEnum = operationalPayloadIds.GetEnumerator();
+
+        for (int n = 0; n < projectionRobotCount; n++)
+        {
+            int id;            
+            if (!idEnum.MoveNext()) return;
+            id = idEnum.Current;
+            
+            double angle = Math.PI * (d * n + savedDegreeOffset) / 180.0;
+            float s = (float)Math.Sin(angle);
+            float c = (float)Math.Cos(angle);
+
+            // translate point back to origin:
+            Vector3 p = new Vector2(0, savedScale);
+
+            // rotate point
+            float xnew = p.x * c - p.y * s;
+            float ynew = p.x * s + p.y * c;
+
+            // translate point back:
+            p.x = xnew + savedFormationPivot.x;
+            p.y = ynew + savedFormationPivot.y;
+            targetRend.GetChild(n).position = p;
+            targetRend.GetChild(n).GetChild(1).GetComponent<TMPro.TextMeshPro>().text = id.ToString();
+
+            controllableUnits["p" + id].SetMoveGoal(WorldScaler.WorldToRealPosition(p), targetRend.GetChild(n).GetChild(0).rotation);
+        }
+        for (int n= projectionRobotCount; n < payloadCount; n++)
+        {
+            targetRend.GetChild(n).gameObject.SetActive(false);
+        }
+        targetRend.gameObject.SetActive(true);
+    }
+
+    [HideInInspector]
     public List<PayloadData> customFormationData;
     void ProjectCustomFormation()
     {
@@ -309,7 +358,7 @@ public class OcuManager : Singleton<OcuManager>
         float s = (float)Math.Sin(angle);
         float c = (float)Math.Cos(angle);
 
-        projectionRobotCount = (IsPlannerMode) ? payloadCount : operationalPayloadIds.Count;
+        projectionRobotCount = operationalPayloadIds.Count;
         //projectionRobotCount = customFormationData.Count;
         Vector2 mousePos2D = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
@@ -317,15 +366,15 @@ public class OcuManager : Singleton<OcuManager>
         for (int n = 0; n < projectionRobotCount; n++)
         {
             int id;
-            if (!IsPlannerMode)
+            //if (!IsPlannerMode)
             {
                 if (!idEnum.MoveNext()) return;
                 id = idEnum.Current;
             }
-            else
-            {
-                id = n + 1;
-            }
+            //else
+            //{
+            //    id = n + 1;
+            //}
 
             Vector2 p = new Vector2(customFormationData[n].position.x, customFormationData[n].position.y);
             float xnew = p.x * c - p.y * s;
@@ -387,9 +436,10 @@ public class OcuManager : Singleton<OcuManager>
         }
     }
 
-    public void RegisterTargetProjection(bool isSingle = false)
+    public void RegisterTargetProjection(bool isSingle = false, Vector2 mousePos = new Vector2())
     {
         targetRend.gameObject.SetActive(true);
+        hasTargetFormation = !isSingle;
         if (isSingle)
         {
             targetRend.GetChild(0).position = projectionRend.GetChild(0).position;
@@ -403,6 +453,9 @@ public class OcuManager : Singleton<OcuManager>
         }
         else
         {
+            savedFormationPivot = mousePos;
+            savedDegreeOffset = degreeOffset;
+            savedScale = formationProjScale;
             for (int i = 0; i < operationalPayloadIds.Count; i++)
             {
                 targetRend.GetChild(i).position = projectionRend.GetChild(i).position;
@@ -596,6 +649,8 @@ public class OcuManager : Singleton<OcuManager>
                     {
                         if (IsPlannerMode)
                         {
+                            hasTargetFormation = false; //to add definition for self fixing
+                            targetRend.gameObject.SetActive(false);
                             for (int i = 0; i < plannerUnits.Count; i++)
                             {
                                 StartCoroutine(MoveUnitToPositionCoroutine(plannerUnits[i], projectedPositions[i], projectedRotations[i]));
@@ -611,7 +666,7 @@ public class OcuManager : Singleton<OcuManager>
                                     StartCoroutine(MoveUnitToPositionCoroutine(controllableUnits["p" + i], projectedPositions[n], projectedRotations[n]));
                                 else
                                     controllableUnits["p" + i].SetMoveGoal(WorldScaler.WorldToRealPosition(projectedPositions[n]), projectedRotations[n]);
-                                ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[n].ToString()));
+                                //ocuLogger.Logv(string.Format("p{0} moving to point {1}", i, projectedPositions[n].ToString()));
                                 n++;
                             }
                         }
@@ -638,6 +693,9 @@ public class OcuManager : Singleton<OcuManager>
                     ProjectCustomFormation();
                     if (Input.GetMouseButtonDown(1))
                     {
+                        hasTargetFormation = false; //to add definition for self fixing
+                        targetRend.gameObject.SetActive(false);
+
                         if (IsPlannerMode)
                         {
                             for (int i = 0; i < plannerUnits.Count; i++)
@@ -661,6 +719,11 @@ public class OcuManager : Singleton<OcuManager>
                     }
                 }
             }
+        }
+
+        if (hasTargetFormation && operationalPayloadIds.Count < targetCount)
+        {
+            SelfFixFormation();
         }
 
         // Bg Graphic updates

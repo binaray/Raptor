@@ -34,6 +34,7 @@ public class OcuLogger : Singleton<OcuLogger>
     {
         StartCoroutine(_LogText(message, color));
     }
+
     private IEnumerator _LogText(string message, Color color)
     {
         if (textItems.Count >= 50)

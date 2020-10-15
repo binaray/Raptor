@@ -114,6 +114,7 @@ namespace Controllable
             realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
             //realRotation = new Quaternion(odom.pose.pose.orientation.y, -odom.pose.pose.orientation.z, -odom.pose.pose.orientation.x, odom.pose.pose.orientation.w);
             isMessageReceived = true;
+            //print("Message received from raptor " + num); ;
             timeElapsed = 0f;
         }
         #endregion
