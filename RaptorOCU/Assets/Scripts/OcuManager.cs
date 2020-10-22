@@ -311,6 +311,7 @@ public class OcuManager : Singleton<OcuManager>
         StopAllUnits();
         ocuLogger.Logw("Formation self fix initiated");
         projectionRobotCount = operationalPayloadIds.Count;
+        targetCount = projectionRobotCount;
         double d = 360.0 / projectionRobotCount;
         IEnumerator<int> idEnum = operationalPayloadIds.GetEnumerator();
 
@@ -474,7 +475,10 @@ public class OcuManager : Singleton<OcuManager>
     #region Global and planner methods
     public void ExecutePlanForAllUnits()
     {
-        foreach (PlannerUnit p in plannerUnits) p.MoveParentToPlan();
+        foreach (PlannerUnit p in plannerUnits)
+        {
+            p.MoveParentToPlan();
+        }
     }
 
     public void StopAllUnits()
