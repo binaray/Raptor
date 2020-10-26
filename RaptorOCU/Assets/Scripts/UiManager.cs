@@ -166,6 +166,7 @@ Left click on any unit on scene for contextual actions";
             pointToPointButton = selectionButtons.GetChild(0);
             pointToFormationButton = selectionButtons.GetChild(1);
             manualMovementButton = selectionButtons.GetChild(2);
+            selectionButtons.GetChild(3).gameObject.SetActive(false);
 
             SetSelectionButtonType(pointToPointButton, State.PointToPoint);
             SetSelectionButtonType(pointToFormationButton, State.PointToFormation);

@@ -570,6 +570,7 @@ public class OcuManager : Singleton<OcuManager>
 
                 //Setup of Ros endpoints
                 p.OdomSubscribe(i);
+                p.CmdVelPublisherSetup("raptor" + i);
                 p.SetupMoveBaseAction(i);
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
@@ -587,6 +588,14 @@ public class OcuManager : Singleton<OcuManager>
     #endregion
 
     #region Unity runtime
+
+    bool inputLock = false;
+    IEnumerator Wait()
+    {
+        inputLock = true;
+        yield return new WaitForSeconds(.5f);
+        inputLock = false;
+    }
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
@@ -641,8 +650,19 @@ public class OcuManager : Singleton<OcuManager>
             //movement controls
             if (UiManager.Instance.currentState == UiManager.State.ManualMovement)
             {
-                SelectedUnit.MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
-                SelectedUnit.Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
+                if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest || IsPlannerMode)
+                {
+                    SelectedUnit.MoveForward(Input.GetAxis("Vertical") * curSpeed * Time.deltaTime);
+                    SelectedUnit.Rotate(Input.GetAxis("Horizontal") * rotSpeed * Time.deltaTime * Vector3.back);
+                }
+                else
+                {
+                    if (!inputLock)
+                    {
+                        StartCoroutine(Wait());
+                        SelectedUnit.PublishCmdVel();
+                    }
+                }
             }
             else
             {

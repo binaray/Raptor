@@ -126,21 +126,47 @@ namespace Controllable
         public string FrameId = "Unity";
         private string JoyPublicationId;
         private RosSharp.RosBridgeClient.Messages.Sensor.Joy message;
-        public void JoyPublisherSetup(int num)
+
+        private string CmdVelPublicationId;
+        private RosSharp.RosBridgeClient.Messages.Geometry.Twist twist;
+        private float linearSpeed = 0.15f;
+        private float angularSpeed = 0.2f;
+
+        //public void JoyPublisherSetup(int num)
+        //{
+        //    message = new RosSharp.RosBridgeClient.Messages.Sensor.Joy();
+        //    message.header.frame_id = FrameId;
+        //    message.axes = new float[2];
+        //    message.buttons = new int[0];
+        //    JoyPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Sensor.Joy>("/goal");
+        //}
+        //public void PublishJoy()
+        //{
+        //    message.header.Update();
+        //    message.axes[0] = Input.GetAxis("Horizontal");
+        //    message.axes[1] = Input.GetAxis("Vertical");
+        //    RaptorConnector.Instance.rosSocket.Publish(JoyPublicationId, message);
+        //}
+
+        public void CmdVelPublisherSetup(string id)
         {
-            message = new RosSharp.RosBridgeClient.Messages.Sensor.Joy();
-            message.header.frame_id = FrameId;
-            message.axes = new float[2];
-            message.buttons = new int[0];
-            JoyPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Sensor.Joy>("/goal");
+            twist = new RosSharp.RosBridgeClient.Messages.Geometry.Twist();
+            CmdVelPublicationId = RaptorConnector.Instance.rosSocket.Advertise<RosSharp.RosBridgeClient.Messages.Geometry.Twist>("/" + id + "/cmd_vel");
+            print("Advertising " + CmdVelPublicationId);
         }
-        public void PublishJoy()
+        public void PublishCmdVel()
         {
-            message.header.Update();
-            message.axes[0] = Input.GetAxis("Horizontal");
-            message.axes[1] = Input.GetAxis("Vertical");
-            RaptorConnector.Instance.rosSocket.Publish(JoyPublicationId, message);
+            twist.linear.x = (Input.GetAxis("Vertical") > 0) ? angularSpeed : (Input.GetAxis("Vertical") < 0) ? -angularSpeed : 0;
+            //twist.linear.y = 0; 
+            //twist.linear.z = 0;
+            //twist.angular.x = 0;
+            //twist.angular.y = 0;
+            twist.angular.z = (Input.GetAxis("Horizontal") > 0) ? -linearSpeed : (Input.GetAxis("Horizontal") < 0) ? linearSpeed : 0;
+            print("Moving " + num + " linear: " + twist.linear.x + " angular: " + twist.angular.z);
+            RaptorConnector.Instance.rosSocket.Publish(CmdVelPublicationId, twist);
         }
+
+
         #endregion
 
         #region ROS move base action methods
