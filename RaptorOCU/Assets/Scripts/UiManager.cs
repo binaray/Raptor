@@ -250,6 +250,9 @@ Right click: Confirm";
 WASD or up, down, left, right keys or joystick to move";
 
         SetButtonState(manualMovementButton, true);
+
+        Unit selectedUnit = OcuManager.Instance.SelectedUnit;
+        if (selectedUnit is Payload) selectedUnit.CancelMoveBaseAction();
         while (currentState == State.ManualMovement)
         {
             yield return null;

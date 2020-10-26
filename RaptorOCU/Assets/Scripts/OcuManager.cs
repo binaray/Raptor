@@ -593,7 +593,7 @@ public class OcuManager : Singleton<OcuManager>
     IEnumerator Wait()
     {
         inputLock = true;
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(.25f);
         inputLock = false;
     }
     void Start()

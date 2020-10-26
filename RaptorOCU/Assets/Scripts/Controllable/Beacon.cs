@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using RosSharp.RosBridgeClient.Messages;
+using RosSharp.RosBridgeClient.Messages.Sensor;
 using UnityEngine.UI;
 
 namespace Controllable
@@ -9,6 +10,7 @@ namespace Controllable
     public class Beacon : Unit
     {
         public GameObject beaconDisplay;
+        private string gpsSubId;
 
         public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
@@ -28,6 +30,15 @@ namespace Controllable
                 transform.GetChild(0).GetComponent<SpriteRenderer>().color = (status == Status.Alive) ? beaconColor : deadColor;
                 transform.GetChild(1).GetComponent<TMPro.TextMeshPro>().color = focusedColor;
             }
+        }
+
+        //-GPS data-
+        //message type details: http://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
+        public void GpsSubscribe(string id)
+        {
+            OcuLogger.Instance.Logv("Subscribing to GPS: " + id);
+            //RosSharp.RosBridgeClient.Messages.Sensor
+            //gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(odomId, OdomSubscriptionHandler);
         }
 
         /*-TO IMPLEMENT:  ROS Camera Subscription-*/

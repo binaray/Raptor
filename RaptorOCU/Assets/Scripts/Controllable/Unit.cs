@@ -130,7 +130,7 @@ namespace Controllable
         private string CmdVelPublicationId;
         private RosSharp.RosBridgeClient.Messages.Geometry.Twist twist;
         private float linearSpeed = 0.15f;
-        private float angularSpeed = 0.2f;
+        private float angularSpeed = 0.3f;
 
         //public void JoyPublisherSetup(int num)
         //{
@@ -156,12 +156,12 @@ namespace Controllable
         }
         public void PublishCmdVel()
         {
-            twist.linear.x = (Input.GetAxis("Vertical") > 0) ? angularSpeed : (Input.GetAxis("Vertical") < 0) ? -angularSpeed : 0;
+            twist.linear.x = (Input.GetAxis("Vertical") > 0) ? linearSpeed : (Input.GetAxis("Vertical") < 0) ? -linearSpeed : 0;
             //twist.linear.y = 0; 
             //twist.linear.z = 0;
             //twist.angular.x = 0;
             //twist.angular.y = 0;
-            twist.angular.z = (Input.GetAxis("Horizontal") > 0) ? -linearSpeed : (Input.GetAxis("Horizontal") < 0) ? linearSpeed : 0;
+            twist.angular.z = (Input.GetAxis("Horizontal") > 0) ? -angularSpeed : (Input.GetAxis("Horizontal") < 0) ? angularSpeed : 0;
             print("Moving " + num + " linear: " + twist.linear.x + " angular: " + twist.angular.z);
             RaptorConnector.Instance.rosSocket.Publish(CmdVelPublicationId, twist);
         }
