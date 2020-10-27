@@ -11,6 +11,8 @@ namespace Controllable
     {
         public GameObject beaconDisplay;
         private string gpsSubId;
+        public Vector2 latLong;
+        private bool isNatSatReceived = false;
 
         public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
@@ -37,13 +39,20 @@ namespace Controllable
         public void GpsSubscribe(string id)
         {
             OcuLogger.Instance.Logv("Subscribing to GPS: " + id);
-            //RosSharp.RosBridgeClient.Messages.Sensor
-            //gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(odomId, OdomSubscriptionHandler);
+            NavSatFix natSatData = new NavSatFix();
+            gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<NavSatFix>(id, NatSatSubscriptionHandler);
+        }
+        protected virtual void NatSatSubscriptionHandler(NavSatFix natSat)
+        {
+            latLong.x = (float)natSat.latitude;
+            latLong.y = (float)natSat.longitude;
+            isNatSatReceived = true;
+            //timeElapsed = 0f;
         }
 
         /*-TO IMPLEMENT:  ROS Camera Subscription-*/
         //private string cameraSubscriptionId;
-        //protected void CaneraUpdate()
+        //protected void CameraUpdate()
         //{
         //    transform.position = realPosition;
         //    transform.rotation = realRotation;
