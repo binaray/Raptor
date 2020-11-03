@@ -4,6 +4,7 @@ using UnityEngine;
 using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Sensor;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 namespace Controllable
 {
@@ -50,23 +51,56 @@ namespace Controllable
             //timeElapsed = 0f;
         }
 
-        /*-TO IMPLEMENT:  ROS Camera Subscription-*/
-        //private string cameraSubscriptionId;
-        //protected void CameraUpdate()
-        //{
-        //    transform.position = realPosition;
-        //    transform.rotation = realRotation;
-        //}
-        //public void CameraSubscribe(string id)
-        //{
-        //    OcuLogger.Instance.Logv("Subscribing to: " + id);
-        //    cameraSubscriptionId = RaptorConnector.Instance.rosSocket.Subscribe<nav_msgs.Odometry>(id, CameraSubscriptionHandler);
-        //}
-        //protected virtual void CameraSubscriptionHandler(nav_msgs.Odometry odom)
-        //{
-        //    realPosition = new Vector3(odom.pose.pose.position.x, odom.pose.pose.position.y);
-        //    realRotation = new Quaternion(odom.pose.pose.orientation.x, odom.pose.pose.orientation.y, odom.pose.pose.orientation.z, odom.pose.pose.orientation.w);
-        //    isMessageReceived = true;
-        //}
+        #region ROS Cam /*-TO IMPLEMENT:  ROS Camera Subscription-*/
+        CustomWebRequest camImage;
+        string camUrl;
+        UnityWebRequest webRequest;
+        byte[] bytes = new byte[90000]; //Reserved space for dl handler
+
+        public void SetupCamera(string url)
+        {
+            print("Connecting to: " + url);
+            camUrl = url;
+            
+            StartCoroutine(GetCamTexture());
+        }
+
+        IEnumerator GetCamTexture()
+        {
+            webRequest = new UnityWebRequest(camUrl);
+            camImage = new CustomWebRequest(bytes);
+            camImage.target = beaconDisplay.GetComponent<RawImage>();
+            webRequest.downloadHandler = camImage;
+            yield return webRequest.SendWebRequest();
+
+            //while (true)
+            //{
+            //    if (camImage.newDataReceived)
+            //    {
+            //        Texture2D camTexture = new Texture2D(2, 2);
+            //        camTexture.LoadImage(camImage.completeImageByte);
+            //        beaconDisplay.GetComponent<RawImage>().texture = camTexture;
+            //        Debug.Log("Applied new Image");
+            //    }
+            //    else
+            //        Debug.Log("Waiting for data..");
+            //    yield return new WaitForSeconds(0.2f);
+            //}
+        }
+        #endregion
+
+        #region Unity runtime
+        private void Update()
+        {
+            if (isNatSatReceived)
+            {
+                print("GPS data: " + latLong.x + ", " + latLong.y);
+            }
+        }
+        private void OnApplicationQuit()
+        {
+            webRequest.Abort();
+        }
+        #endregion
     }
 }
