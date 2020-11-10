@@ -696,7 +696,7 @@ public class OcuManager : Singleton<OcuManager>
                         else
                         {
                             int n = 0;
-                            RegisterTargetProjection();
+                            RegisterTargetProjection(false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
                             foreach (int i in operationalPayloadIds)
                             {
                                 if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.UiTest)
