@@ -51,7 +51,7 @@ namespace Controllable
             //timeElapsed = 0f;
         }
 
-        #region ROS Cam /*-TO IMPLEMENT:  ROS Camera Subscription-*/
+        #region IP Camera
         CustomWebRequest camImage;
         string camUrl;
         UnityWebRequest webRequest;
@@ -72,20 +72,6 @@ namespace Controllable
             camImage.target = beaconDisplay.GetComponent<RawImage>();
             webRequest.downloadHandler = camImage;
             yield return webRequest.SendWebRequest();
-
-            //while (true)
-            //{
-            //    if (camImage.newDataReceived)
-            //    {
-            //        Texture2D camTexture = new Texture2D(2, 2);
-            //        camTexture.LoadImage(camImage.completeImageByte);
-            //        beaconDisplay.GetComponent<RawImage>().texture = camTexture;
-            //        Debug.Log("Applied new Image");
-            //    }
-            //    else
-            //        Debug.Log("Waiting for data..");
-            //    yield return new WaitForSeconds(0.2f);
-            //}
         }
         #endregion
 

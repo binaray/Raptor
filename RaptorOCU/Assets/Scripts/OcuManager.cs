@@ -550,6 +550,7 @@ public class OcuManager : Singleton<OcuManager>
             b.beaconDisplay = newBeaconDisp;
             b.Init(_id, 1, beaconPPos[0], new Quaternion(0, 0, 0, 1));
             b.GpsSubscribe("bp_gps/fix");
+            b.CmdVelPublisherSetup("beacon" + 1);
             b.SetupCamera("http://192.168.1.142:5000/video_feed");
             ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", _id, b.realPosition));
             controllableUnits.Add(_id, b);
@@ -564,6 +565,7 @@ public class OcuManager : Singleton<OcuManager>
                 newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                 b.beaconDisplay = newBeaconDisp;
                 b.Init(id, i, beaconPPos[i-1], new Quaternion(0, 0, 0, 1));
+                b.CmdVelPublisherSetup("beacon" + i);
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
                 beaconIds.Add(id);

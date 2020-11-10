@@ -157,10 +157,6 @@ namespace Controllable
         public void PublishCmdVel()
         {
             twist.linear.x = (Input.GetAxis("Vertical") > 0) ? linearSpeed : (Input.GetAxis("Vertical") < 0) ? -linearSpeed : 0;
-            //twist.linear.y = 0; 
-            //twist.linear.z = 0;
-            //twist.angular.x = 0;
-            //twist.angular.y = 0;
             twist.angular.z = (Input.GetAxis("Horizontal") > 0) ? -angularSpeed : (Input.GetAxis("Horizontal") < 0) ? angularSpeed : 0;
             print("Moving " + num + " linear: " + twist.linear.x + " angular: " + twist.angular.z);
             RaptorConnector.Instance.rosSocket.Publish(CmdVelPublicationId, twist);
