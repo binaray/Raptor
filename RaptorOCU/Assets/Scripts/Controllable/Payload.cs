@@ -20,6 +20,7 @@ namespace Controllable
             //print(((Vector2)realPosition).ToString() + " " + realRotation.ToString());
             if (isMessageReceived)
             {
+                if (!Compass.Instance.isCalibrating) Compass.Instance.ImuAngleOffsetSubscribe(num);
                 OdomUpdate();
                 posText.text = string.Format("{0}, {1}", realPosition.x.ToString("0.00"), realPosition.y.ToString("0.00")); //((Vector2)realPosition).ToString();
             }
