@@ -10815,7 +10815,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'LAT: LONG:'
+  m_Text: 'x: y:'
 --- !u!222 &1329607918
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -16124,7 +16124,7 @@ MonoBehaviour:
   Timeout: 10
   Serializer: 0
   RosBridgeServerUrl: ws://192.168.1.150:9090
-  buildMode: 0
+  buildMode: 1
 --- !u!1 &2137493933
 GameObject:
   m_ObjectHideFlags: 0

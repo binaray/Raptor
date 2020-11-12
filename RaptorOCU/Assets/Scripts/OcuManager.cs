@@ -543,32 +543,19 @@ public class OcuManager : Singleton<OcuManager>
             beaconPPos.Add(new Vector3(4, -13, 0));
             beaconPPos.Add(new Vector3(24, 0, 0));
 
-            string _id = string.Format("b{0}", 1);
-            Beacon b = Instantiate(beaconPrefab);
-            GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-            newBeaconDisp.SetActive(true);
-            newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-            newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
-            b.beaconDisplay = newBeaconDisp;
-            b.Init(_id, 1, beaconPPos[0], new Quaternion(0, 0, 0, 1));
-            //b.GpsSubscribe("bp_gps/fix");
-            b.CmdVelPublisherSetup("beacon" + 1);
-            b.SetupCamera("http://192.168.1.174:5000/video_feed");
-            ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", _id, b.realPosition));
-            controllableUnits.Add(_id, b);
-            beaconIds.Add(_id);
-
-            for (int i = 2; i < beaconCount + 1; i++)
+            for (int i = 1; i < beaconCount + 1; i++)
             {
                 string id = string.Format("b{0}", i);
-                b = Instantiate(beaconPrefab);
-                newBeaconDisp = Instantiate(beaconGuiTemplate);
+                Beacon b = Instantiate(beaconPrefab);
+                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
                 newBeaconDisp.SetActive(true);
                 newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                 newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
                 b.beaconDisplay = newBeaconDisp;
                 b.Init(id, i, beaconPPos[i-1], new Quaternion(0, 0, 0, 1));
                 b.CmdVelPublisherSetup("beacon" + i);
+                if (i==1) b.SetupCamera("http://192.168.1.144:5000/video_feed"); 
+
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
                 beaconIds.Add(id);
