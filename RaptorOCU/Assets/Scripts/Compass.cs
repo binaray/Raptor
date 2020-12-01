@@ -64,7 +64,7 @@ public class Compass : Singleton<Compass>
     {
         if (isMessageReceived && !isCalibrated)
         {
-            GetComponent<RectTransform>().Rotate(new Vector3(0, 0, offset));
+            GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -offset));
             isCalibrated = true;
         }
         if (isNatSatReceived) GpsPosition.text = string.Format("lat: {0}, long: {1}", lati.ToString("0.0000"), longi.ToString("0.0000"));

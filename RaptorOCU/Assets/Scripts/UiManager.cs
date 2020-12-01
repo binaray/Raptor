@@ -150,12 +150,13 @@ Left click on any unit on scene for contextual actions";
             helpDispText.text = "-Beacon " + OcuManager.Instance.SelectedUnit.id + " Selected-\n" +
 "ESC key to deselect";
             unitText.text = "Beacon " + selectedUnit.id;
-            pointToPointButton = selectionButtons.GetChild(0);
-            manualMovementButton = selectionButtons.GetChild(1);
+            manualMovementButton = selectionButtons.GetChild(0);
+            //pointToPointButton = selectionButtons.GetChild(0);
+            selectionButtons.GetChild(1).gameObject.SetActive(false);
             selectionButtons.GetChild(2).gameObject.SetActive(false);
             selectionButtons.GetChild(3).gameObject.SetActive(false);
 
-            SetSelectionButtonType(pointToPointButton, State.PointToPoint);
+            //SetSelectionButtonType(pointToPointButton, State.PointToPoint);
             SetSelectionButtonType(manualMovementButton, State.ManualMovement);
         }
         else if (selectedUnit is PlannerUnit)
