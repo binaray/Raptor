@@ -26,11 +26,12 @@ public class RaptorConnector : Singleton<RaptorConnector>
     void Start()
     {
         ocuLogger = OcuLogger.Instance;
-        string ip = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_IP, null);
-        if (ip != null)
-        {
-            SetRosIp(ip);
-        }
+        //string ip = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_IP, null);
+        SetRosIp("0.0.0.0");
+        //if (ip != null)
+        //{
+        //    SetRosIp(ip);
+        //}
         if (buildMode==BuildMode.UiTest)
             OcuManager.Instance.InitUnits(true);
         else if (buildMode==BuildMode.Prodution)
