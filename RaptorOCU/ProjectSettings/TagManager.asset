@@ -7,6 +7,7 @@ TagManager:
   - ControllableUnit
   - Ui
   - PlannerUnit
+  - BingMap
   layers:
   - Default
   - TransparentFX
@@ -16,7 +17,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - bingmap
   - 
   - 
   - 
@@ -41,6 +42,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: test
+    uniqueID: 3621492993
+    locked: 0
   - name: Background
     uniqueID: 3958379301
     locked: 0

@@ -43,13 +43,24 @@ namespace Controllable
             NavSatFix natSatData = new NavSatFix();
             gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<NavSatFix>(id, NatSatSubscriptionHandler);
         }
+
         protected virtual void NatSatSubscriptionHandler(NavSatFix natSat)
         {
             latLong.x = (float)natSat.latitude;
             latLong.y = (float)natSat.longitude;
             isNatSatReceived = true;
             //timeElapsed = 0f;
+
+            //render map here
+            GameObject bingmap = GameObject.FindWithTag("BingMap");
+
+            if (bingmap != null)
+            {
+                bingmap.GetComponent<locationRenderer>().renderBingMap(latLong.x, latLong.y);
+            }
         }
+
+        
 
         #region IP Camera
         CustomWebRequest camImage;
@@ -76,6 +87,7 @@ namespace Controllable
         #endregion
 
         #region Unity runtime
+      
         private void Update()
         {
             if (isNatSatReceived)

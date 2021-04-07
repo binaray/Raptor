@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.microsoft.maps.unity": {
+      "version": "0.10.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://unity.virtualearth.net/npm/registry"
+    },
     "com.unity.2d.animation": {
       "version": "3.2.5",
       "depth": 0,

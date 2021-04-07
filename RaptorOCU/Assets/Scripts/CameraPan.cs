@@ -75,7 +75,9 @@ public class CameraPan : MonoBehaviour
             if (upperBound.x < maxFrameBound.x + frameOffset)
             {
                 transform.position += new Vector3(panSpeed * Time.deltaTime, 0, 0);
+                renderBingMap(3);
                 RenderGridlines();
+
             }
         }
         else if (Input.mousePosition.x < panBorderSize)
@@ -84,6 +86,8 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(panSpeed * Time.deltaTime, 0, 0);
                 RenderGridlines();
+                renderBingMap(4);
+
             }
         }
 
@@ -93,6 +97,8 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position += new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
+                renderBingMap(1);
+
             }
         }
         else if (Input.mousePosition.y < panBorderSize)
@@ -101,6 +107,7 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
+                renderBingMap(2);
             }
         }
     }
@@ -152,6 +159,22 @@ public class CameraPan : MonoBehaviour
         for (int i = gridTextTransform.childCount; i > textCount; i--)
         {
             Destroy(gridTextTransform.GetChild(i - 1).gameObject);
+        }
+
+        
+    }
+
+    //eventually should make direction an enum
+    //direction - north 1, south 2, east 3, west 4
+    public void renderBingMap(int direction) {
+       
+        GameObject bingmap = GameObject.FindWithTag("BingMap");
+
+        if (bingmap != null)
+        {
+            float midx = (lowerBound.x + upperBound.x) / 2;
+            float midy = (lowerBound.y + upperBound.y) / 2;
+            bingmap.GetComponent<locationRenderer>().transformMap(midx, midy,direction);
         }
     }
 
