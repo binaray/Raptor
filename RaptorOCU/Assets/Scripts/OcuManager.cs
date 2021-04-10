@@ -512,8 +512,8 @@ public class OcuManager : Singleton<OcuManager>
                 newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                 newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
                 b.beaconDisplay = newBeaconDisp;
-                if (i==1) b.SetupCamera("http://192.168.1.142:5000/video_feed");
-
+                b.ImageUITestSetup();
+                //if (i==1) b.SetupCamera("http://192.168.1.142:5000/video_feed");
                 b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
@@ -554,7 +554,11 @@ public class OcuManager : Singleton<OcuManager>
                 b.beaconDisplay = newBeaconDisp;
                 b.Init(id, i, beaconPPos[i-1], new Quaternion(0, 0, 0, 1));
                 b.CmdVelPublisherSetup("beacon" + i);
-                if (i==1) b.SetupCamera("http://192.168.1.144:5000/video_feed"); 
+
+                //video streaming
+                b.ImageSubscribe(i);
+                
+                //if (i==1) b.SetupCamera("http://192.168.1.144:5000/video_feed"); 
 
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);

@@ -5,6 +5,7 @@ using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Sensor;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using sensor_msgs = RosSharp.RosBridgeClient.Messages.Sensor;
 
 namespace Controllable
 {
@@ -12,8 +13,13 @@ namespace Controllable
     {
         public GameObject beaconDisplay;
         private string gpsSubId;
+        private string imageSubId;
         public Vector2 latLong;
+        public byte[] imageData;
         private bool isNatSatReceived = false;
+        private bool isImgReceived = false;
+        public Texture2D camTex;
+
 
         public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
@@ -35,6 +41,7 @@ namespace Controllable
             }
         }
 
+        #region ros subscriptions
         //-GPS data-
         //message type details: http://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
         public void GpsSubscribe(string id)
@@ -60,9 +67,55 @@ namespace Controllable
             }
         }
 
-        
+        //-Video Data-
+        //havent decided which is used yet 
+        //compressed image message type details: http://docs.ros.org/en/api/sensor_msgs/html/msg/CompressedImage.html 
+        //image message type details: https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
+        public void ImageSubscribe(int i)
+        {
+            string imgId = string.Format("b{0}/compressedImage", i);
+            OcuLogger.Instance.Logv("Subscribing to Image: " + imgId);
+            imageSubId = RaptorConnector.Instance.rosSocket.Subscribe<sensor_msgs.CompressedImage>(imgId, ImageSubscriptionHandler);
+        }
+
+        protected virtual void ImageSubscriptionHandler(sensor_msgs.CompressedImage image)
+        {
+            camTex = new Texture2D(2, 2);
+            imageData = image.data;
+            isImgReceived = true;
+            camTex.LoadImage(imageData);
+            beaconDisplay.GetComponent<RawImage>().texture = camTex;
+        }
+        #endregion
+
+        #region UITestImage
+        public void ImageUITestSetup() {
+            camTex = new Texture2D(2, 2);
+            StartCoroutine(ImageUITestUpdator());
+        }
+        IEnumerator ImageUITestUpdator() {
+            //Get the path of the Game data folder
+            string full_path_start = Application.dataPath;
+            string imageFilePath = "\\Resources\\Sprites\\UITestBeaconImg.png";
+            //Output the Game data path to the console
+            Debug.Log("dataPath : " + full_path_start);
+            
+            string url = full_path_start+imageFilePath; 
+
+            WWW www = new WWW(url);
+            
+            Debug.Log("bytes downloaded: "+ www.bytesDownloaded);
+            yield return www;
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            www.LoadImageIntoTexture(camTex);
+            beaconDisplay.GetComponent<RawImage>().texture = camTex;
+        }
+
+        #endregion
+
 
         #region IP Camera
+        //NOT USING 
         CustomWebRequest camImage;
         string camUrl;
         UnityWebRequest webRequest;
@@ -94,6 +147,7 @@ namespace Controllable
             {
                 print("GPS data: " + latLong.x + ", " + latLong.y);
             }
+
         }
         private void OnApplicationQuit()
         {
