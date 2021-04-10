@@ -28,8 +28,14 @@ public class CameraPan : MonoBehaviour
 
     [SerializeField]
     private float frameOffset = 2f;
-    private Vector2 minFrameBound;
+    public float Frameoffset { get { return frameOffset; } }
+
+    private Vector2 minFrameBound; 
+    public Vector2 MinFrameBound { get { return minFrameBound; } }
     private Vector2 maxFrameBound;
+
+    public Vector2 MaxFrameBound { get { return maxFrameBound; } }
+
     private bool frameCheck = false;
 
     Vector2 lowerBound;
@@ -46,8 +52,11 @@ public class CameraPan : MonoBehaviour
         newLowerBound.y = Mathf.Floor(newLowerBound.y);
         newLowerBound.y -= (newLowerBound.y % gridlineStep);
         upperBound = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        //Debug.Log(string.Format("upperbound x {0}, y {1}", upperBound.x, upperBound.y));
         upperBound.x = Mathf.Ceil(upperBound.x);
         upperBound.y = Mathf.Ceil(upperBound.y);
+
+        //UiManager.Instance.transform.position = newLowerBound;
 
         //Update camera min/max bounds from updated beacon positions
         foreach (string bId in OcuManager.Instance.beaconIds)
@@ -75,7 +84,6 @@ public class CameraPan : MonoBehaviour
             if (upperBound.x < maxFrameBound.x + frameOffset)
             {
                 transform.position += new Vector3(panSpeed * Time.deltaTime, 0, 0);
-                ///renderBingMap(3);
                 RenderGridlines();
 
             }
@@ -86,8 +94,6 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(panSpeed * Time.deltaTime, 0, 0);
                 RenderGridlines();
-                //renderBingMap(4);
-
             }
         }
 
@@ -97,8 +103,6 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position += new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
-                //renderBingMap(1);
-
             }
         }
         else if (Input.mousePosition.y < panBorderSize)
@@ -107,7 +111,6 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
-                //renderBingMap(2);
             }
         }
     }
@@ -165,19 +168,6 @@ public class CameraPan : MonoBehaviour
         
     }
 
-    //eventually should make direction an enum
-    //direction - north 1, south 2, east 3, west 4
-    public void renderBingMap(int direction) {
-       
-        GameObject bingmap = GameObject.FindWithTag("BingMap");
-
-        if (bingmap != null)
-        {
-            float midx = (lowerBound.x + upperBound.x) / 2;
-            float midy = (lowerBound.y + upperBound.y) / 2;
-            bingmap.GetComponent<locationRenderer>().transformMap(midx, midy,direction);
-        }
-    }
 
     public void ZoomIn() { 
         WorldScaler.worldScale = 2;

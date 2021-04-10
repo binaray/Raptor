@@ -42,9 +42,6 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: test
-    uniqueID: 3621492993
-    locked: 0
   - name: Background
     uniqueID: 3958379301
     locked: 0
@@ -71,4 +68,7 @@ TagManager:
     locked: 0
   - name: BeaconText
     uniqueID: 3351710955
+    locked: 0
+  - name: DisplayControls
+    uniqueID: 699675211
     locked: 0
