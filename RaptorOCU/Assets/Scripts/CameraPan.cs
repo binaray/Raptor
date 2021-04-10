@@ -75,7 +75,7 @@ public class CameraPan : MonoBehaviour
             if (upperBound.x < maxFrameBound.x + frameOffset)
             {
                 transform.position += new Vector3(panSpeed * Time.deltaTime, 0, 0);
-                renderBingMap(3);
+                ///renderBingMap(3);
                 RenderGridlines();
 
             }
@@ -86,7 +86,7 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(panSpeed * Time.deltaTime, 0, 0);
                 RenderGridlines();
-                renderBingMap(4);
+                //renderBingMap(4);
 
             }
         }
@@ -97,7 +97,7 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position += new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
-                renderBingMap(1);
+                //renderBingMap(1);
 
             }
         }
@@ -107,7 +107,7 @@ public class CameraPan : MonoBehaviour
             {
                 transform.position -= new Vector3(0, panSpeed * Time.deltaTime, 0);
                 RenderGridlines();
-                renderBingMap(2);
+                //renderBingMap(2);
             }
         }
     }
@@ -119,6 +119,7 @@ public class CameraPan : MonoBehaviour
 
         int childNo = 0;
 
+        //Vector3[] drawPoints = new Vector3[2];
         Vector3[] drawPoints = new Vector3[2];
         for (float x = lowerBound.x; x < upperBound.x; x += gridlineStep)
         {

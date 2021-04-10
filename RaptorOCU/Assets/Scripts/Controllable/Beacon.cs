@@ -57,14 +57,6 @@ namespace Controllable
             latLong.y = (float)natSat.longitude;
             isNatSatReceived = true;
             //timeElapsed = 0f;
-
-            //render map here
-            GameObject bingmap = GameObject.FindWithTag("BingMap");
-
-            if (bingmap != null)
-            {
-                bingmap.GetComponent<locationRenderer>().renderBingMap(latLong.x, latLong.y);
-            }
         }
 
         //-Video Data-
@@ -151,7 +143,7 @@ namespace Controllable
         }
         private void OnApplicationQuit()
         {
-            webRequest.Abort();
+            //webRequest.Abort();
         }
         #endregion
     }

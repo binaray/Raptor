@@ -16,6 +16,7 @@ public class orthoCameraMapDimensionSynchronizer : MonoBehaviour
     }*/
 
     private void Start() {
+        /*
         _camera = Camera.main;
         _mapRenderer = GetComponent<MapRenderer>();
        
@@ -31,6 +32,7 @@ public class orthoCameraMapDimensionSynchronizer : MonoBehaviour
 
         transform.localScale = new Vector3(cameraOrthoWidth, 1, cameraOrthoHeight);
         /*
+        /*
          _renderer = GetComponent<Renderer>();
 
         _renderer.sortingLayerName = "Background";
@@ -41,11 +43,13 @@ public class orthoCameraMapDimensionSynchronizer : MonoBehaviour
     //the local scale for this is not good enough for the mini camera 
     private void Update()
     {
+        /*
         var cameraOrthoSize = _camera.orthographicSize;
         var cameraOrthoHeight = 2 * cameraOrthoSize;
         var cameraOrthoWidth = cameraOrthoHeight * Screen.width / Screen.height;
 
         transform.localScale = new Vector3( cameraOrthoWidth,  1, cameraOrthoHeight);
+        */
     }
 
 
