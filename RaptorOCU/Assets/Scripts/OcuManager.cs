@@ -578,9 +578,13 @@ public class OcuManager : Singleton<OcuManager>
                 p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 //Setup of Ros endpoints
+                //check if this is still needed 
                 p.OdomSubscribe(i);
+                p.GpsSubscribe(i);
                 p.CmdVelPublisherSetup("raptor" + i);
                 p.SetupMoveBaseAction(i);
+
+
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);

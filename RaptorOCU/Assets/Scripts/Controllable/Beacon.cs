@@ -5,7 +5,7 @@ using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Sensor;
 using UnityEngine.UI;
 using UnityEngine.Networking;
-using sensor_msgs = RosSharp.RosBridgeClient.Messages.Sensor;
+using sensor_msgs = RosSharp.RosBridgeClient.MessageTypes.Sensor;
 
 namespace Controllable
 {
@@ -67,10 +67,10 @@ namespace Controllable
         {
             string imgId = string.Format("b{0}/compressedImage", i);
             OcuLogger.Instance.Logv("Subscribing to Image: " + imgId);
-            imageSubId = RaptorConnector.Instance.rosSocket.Subscribe<sensor_msgs.CompressedImage>(imgId, ImageSubscriptionHandler);
+            imageSubId = RaptorConnector.Instance.rosSocket.Subscribe<sensor_msgs.Image>(imgId, ImageSubscriptionHandler);
         }
 
-        protected virtual void ImageSubscriptionHandler(sensor_msgs.CompressedImage image)
+        protected virtual void ImageSubscriptionHandler(sensor_msgs.Image image)
         {
             camTex = new Texture2D(2, 2);
             imageData = image.data;

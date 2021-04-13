@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using RosSharp.RosBridgeClient.Messages.Sensor;
+using geometry_msgs = RosSharp.RosBridgeClient.MessageTypes.Geometry;
 
 namespace Controllable
 {
@@ -8,6 +10,13 @@ namespace Controllable
     {
         public GameObject payloadDisplay;
         private TMPro.TextMeshPro posText;
+        private string gpsSubId, geomTwistId;
+        public Vector2 latLong;
+        private bool isNatSatReceived = false;
+        private bool isGeomTwistReceived = false;
+
+        [SerializeField]
+        private Googlemap googlemap;
 
         private void Awake()
         {
@@ -18,12 +27,14 @@ namespace Controllable
         private void Update()
         {
             //print(((Vector2)realPosition).ToString() + " " + realRotation.ToString());
-            if (isMessageReceived)
+            if (isMessageReceived || isNatSatReceived)
             {
                 if (!Compass.Instance.isCalibrating) Compass.Instance.ImuAngleOffsetSubscribe(num);
                 OdomUpdate();
                 posText.text = string.Format("{0}, {1}", realPosition.x.ToString("0.00"), realPosition.y.ToString("0.00")); //((Vector2)realPosition).ToString();
+                googlemap.updateLatLong(realPosition.x, realPosition.y);
             }
+            
         }
 
         public override void Init(string id, int raptorNum, Vector3 realPos, Quaternion realRot)
@@ -85,6 +96,39 @@ namespace Controllable
         {
             return GetComponent<MoveBaseActionClient>().GetActionStatus();
         }
+
+        #region ROS Subscriptions
+        //-GPS data-
+        //message type details: http://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
+        public void GpsSubscribe(int i)
+        {
+            string gpsId = string.Format("raptor{0}/sensors/filtered", i);
+            OcuLogger.Instance.Logv("Subscribing to GPS: " + gpsId);
+            NavSatFix natSatData = new NavSatFix();
+            gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<NavSatFix>(gpsId, NatSatSubscriptionHandler);
+        }
+
+        protected virtual void NatSatSubscriptionHandler(NavSatFix natSat)
+        {
+            realPosition = new Vector3((float)natSat.longitude, (float)natSat.latitude);
+            isNatSatReceived = true;
+            //timeElapsed = 0f;
+        }
+
+        public void GeomTwistSubscribe(int i)
+        {
+            string geomid = string.Format("raptor{0}/sensors/filtered", i);
+            OcuLogger.Instance.Logv("Subscribing to Geometry Twist: " + geomid);
+            geomTwistId = RaptorConnector.Instance.rosSocket.Subscribe<geometry_msgs.TwistWithCovarianceStamped>(geomid, GeomTwistSubscriptionHandler);
+        }
+
+        protected virtual void GeomTwistSubscriptionHandler(geometry_msgs.TwistWithCovarianceStamped geomTwist)
+        {
+            isGeomTwistReceived = true;
+            realRotation = Quaternion.Euler((float)geomTwist.twist.twist.angular.x, (float)geomTwist.twist.twist.angular.y, (float)geomTwist.twist.twist.angular.z);
+        }
+
+        #endregion
 
         private void OnDestroy()
         {

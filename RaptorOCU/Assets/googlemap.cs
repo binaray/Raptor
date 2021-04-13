@@ -13,7 +13,7 @@ using System.Collections;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class googlemap : MonoBehaviour
+public class Googlemap : MonoBehaviour
 {
     [SerializeField]
     private GameObject mapTemplate;
@@ -68,6 +68,7 @@ public class googlemap : MonoBehaviour
         Debug.Log(string.Format("canvas width: {0}, canvas height: {1}", canvasWidth, canvasHeight));
     }
 
+
     public void Refresh()
     {   
         StartCoroutine(_Refresh());
@@ -113,6 +114,12 @@ public class googlemap : MonoBehaviour
             //mapTemplate.GetComponent<SpriteRenderer>().material.shader = Shader.Find("Sprites/Default");
             mapTemplate.GetComponent<RawImage>().texture = texture;
         }
+    }
+
+    public void updateLatLong(float latitude, float longitude)
+    {
+        centerLocation.latitude = latitude;
+        centerLocation.longitude = longitude;
     }
 
 }
