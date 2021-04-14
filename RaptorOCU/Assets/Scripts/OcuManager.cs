@@ -508,11 +508,14 @@ public class OcuManager : Singleton<OcuManager>
                 Beacon b = Instantiate(beaconPrefab);
 
                 GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-                newBeaconDisp.SetActive(true);
-                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-                newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
-                b.beaconDisplay = newBeaconDisp;
-                b.ImageUITestSetup();
+                
+                if (i == 1) {
+                    newBeaconDisp.SetActive(true);
+                    newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+                    newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
+                    b.beaconDisplay = newBeaconDisp;
+                    b.ImageUITestSetup();
+                }
                 //if (i==1) b.SetupCamera("http://192.168.1.142:5000/video_feed");
                 b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
@@ -547,11 +550,14 @@ public class OcuManager : Singleton<OcuManager>
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
-                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-                newBeaconDisp.SetActive(true);
-                newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
-                newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
-                b.beaconDisplay = newBeaconDisp;
+                if (i == 1)
+                {
+                    GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
+                    newBeaconDisp.SetActive(true);
+                    newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
+                    newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
+                    b.beaconDisplay = newBeaconDisp;
+                }
                 b.Init(id, i, beaconPPos[i-1], new Quaternion(0, 0, 0, 1));
                 b.CmdVelPublisherSetup("beacon" + i);
 
@@ -578,9 +584,8 @@ public class OcuManager : Singleton<OcuManager>
                 p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 //Setup of Ros endpoints
-                //check if this is still needed 
                 p.OdomSubscribe(i);
-                p.GpsSubscribe(i);
+                if(i==1) p.GpsSubscribe(i);
                 p.CmdVelPublisherSetup("raptor" + i);
                 p.SetupMoveBaseAction(i);
 

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using RosSharp.RosBridgeClient.Messages.Sensor;
-using geometry_msgs = RosSharp.RosBridgeClient.MessageTypes.Geometry;
+using geometry_msgs = RosSharp.RosBridgeClient.Messages.Geometry; 
+
 
 namespace Controllable
 {
@@ -11,12 +12,15 @@ namespace Controllable
         public GameObject payloadDisplay;
         private TMPro.TextMeshPro posText;
         private string gpsSubId, geomTwistId;
-        public Vector2 latLong;
+        //public Vector2 latLong;
+        private LatitudeLongitude latLong = new LatitudeLongitude();
         private bool isNatSatReceived = false;
         private bool isGeomTwistReceived = false;
 
         [SerializeField]
         private Googlemap googlemap;
+
+        
 
         private void Awake()
         {
@@ -27,14 +31,16 @@ namespace Controllable
         private void Update()
         {
             //print(((Vector2)realPosition).ToString() + " " + realRotation.ToString());
-            if (isMessageReceived || isNatSatReceived)
+            if (isMessageReceived )
             {
                 if (!Compass.Instance.isCalibrating) Compass.Instance.ImuAngleOffsetSubscribe(num);
                 OdomUpdate();
                 posText.text = string.Format("{0}, {1}", realPosition.x.ToString("0.00"), realPosition.y.ToString("0.00")); //((Vector2)realPosition).ToString();
-                googlemap.updateLatLong(realPosition.x, realPosition.y);
             }
-            
+            if (isNatSatReceived) {
+                //googlemap.updateLatLong(latLong.lat, latLong.lon);
+            }
+
         }
 
         public override void Init(string id, int raptorNum, Vector3 realPos, Quaternion realRot)
@@ -110,29 +116,38 @@ namespace Controllable
 
         protected virtual void NatSatSubscriptionHandler(NavSatFix natSat)
         {
-            realPosition = new Vector3((float)natSat.longitude, (float)natSat.latitude);
+            latLong.lat = natSat.latitude;
+            latLong.lon = natSat.longitude;
             isNatSatReceived = true;
             //timeElapsed = 0f;
         }
 
+        /*
         public void GeomTwistSubscribe(int i)
         {
             string geomid = string.Format("raptor{0}/sensors/filtered", i);
             OcuLogger.Instance.Logv("Subscribing to Geometry Twist: " + geomid);
-            geomTwistId = RaptorConnector.Instance.rosSocket.Subscribe<geometry_msgs.TwistWithCovarianceStamped>(geomid, GeomTwistSubscriptionHandler);
+            geomTwistId = RaptorConnector.Instance.rosSocket.Subscribe<>(geomid, GeomTwistSubscriptionHandler);
         }
 
-        protected virtual void GeomTwistSubscriptionHandler(geometry_msgs.TwistWithCovarianceStamped geomTwist)
+        protected virtual void GeomTwistSubscriptionHandler( geomTwist)
         {
             isGeomTwistReceived = true;
-            realRotation = Quaternion.Euler((float)geomTwist.twist.twist.angular.x, (float)geomTwist.twist.twist.angular.y, (float)geomTwist.twist.twist.angular.z);
         }
-
+        */
+        
         #endregion
 
         private void OnDestroy()
         {
             Destroy(payloadDisplay);
         }
+
+
+        private class LatitudeLongitude
+        {
+            public double lat { get; set; }
+            public double lon { get; set; }
+        };
     }
 }

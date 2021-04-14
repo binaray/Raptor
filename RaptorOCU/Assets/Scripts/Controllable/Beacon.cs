@@ -5,7 +5,7 @@ using RosSharp.RosBridgeClient.Messages;
 using RosSharp.RosBridgeClient.Messages.Sensor;
 using UnityEngine.UI;
 using UnityEngine.Networking;
-using sensor_msgs = RosSharp.RosBridgeClient.MessageTypes.Sensor;
+using sensor_msgs = RosSharp.RosBridgeClient.Messages.Sensor;
 
 namespace Controllable
 {

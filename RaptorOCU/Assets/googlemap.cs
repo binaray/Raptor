@@ -12,6 +12,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using System;
 
 public class Googlemap : MonoBehaviour
 {
@@ -29,8 +30,8 @@ public class Googlemap : MonoBehaviour
     public GoogleMapLocation centerLocation;
     public int zoom = 13;
     public MapType mapType;
-    public int width = 800;
-    public int height = 600;
+    //public int width = 800;
+    //public int height = 600;
     public bool doubleResolution = false;
 
     private int canvasWidth, canvasHeight;
@@ -38,39 +39,19 @@ public class Googlemap : MonoBehaviour
     void Start()
     {
         //var rectTransform = UiManager.Instance.GetComponent<RectTransform>();
-        canvasWidth = width;
-        canvasHeight = height;
+        canvasWidth = (int)mapTemplate.GetComponent<RectTransform>().rect.width;
+        canvasHeight = (int)mapTemplate.GetComponent<RectTransform>().rect.height;
         if (loadOnStart) Refresh();
+        getZoom();
     }
 
     public void Update()
     {
-        //CameraPan camerapan = Camera.main.GetComponent<CameraPan>();
-        //float cameraOffset = camerapan.Frameoffset;
-        //Vector2 minframe = Camera.main.WorldToScreenPoint(new Vector2(camerapan.MinFrameBound.x - cameraOffset * 2, camerapan.MinFrameBound.y - cameraOffset * 2));
-        //Vector2 maxframe = Camera.main.WorldToScreenPoint(new Vector2(camerapan.MaxFrameBound.x + cameraOffset * 2, camerapan.MaxFrameBound.y + cameraOffset * 2));
-
-        //Vector2 minframe = new Vector2(camerapan.MinFrameBound.x - cameraOffset, camerapan.MinFrameBound.y - cameraOffset);
-        //Vector2 maxframe = new Vector2(camerapan.MaxFrameBound.x + cameraOffset, camerapan.MaxFrameBound.y + cameraOffset);
-        //var rectTransform = UiManager.Instance.GetComponent<RectTransform>();
-
-        //canvasWidth = (int)(maxframe.x - minframe.x);
-        //canvasHeight = (int)(maxframe.y - minframe.y);
-
-        //RectTransform mapRectTransform = mapTemplate.GetComponent<RectTransform>();
-        //mapRectTransform.sizeDelta = new Vector2(canvasWidth*100, canvasHeight*100);
-        //mapTemplate.transform.localScale = new Vector2(canvasWidth, canvasHeight);
-        //mapTemplate.transform.position = new Vector2(canvasWidth, canvasHeight);
-        //mapRectTransform.anchoredPosition3D = new Vector2(minframe.x ,minframe.y+cameraOffset/2);
-        //LayoutRebuilder.ForceRebuildLayoutImmediate(mapRectTransform);
-        //Debug.Log(string.Format("min frame: x {0}, y {1}", minframe.x, minframe.y));
-        //Debug.Log(string.Format("max frame: x {0}, y {1}", maxframe.x, maxframe.y));
-        Debug.Log(string.Format("canvas width: {0}, canvas height: {1}", canvasWidth, canvasHeight));
+        //Debug.Log(string.Format("canvas width: {0}, canvas height: {1}", canvasWidth, canvasHeight));
     }
 
-
     public void Refresh()
-    {   
+    {
         StartCoroutine(_Refresh());
     }
 
@@ -93,9 +74,9 @@ public class Googlemap : MonoBehaviour
         qs += "&size=" + UnityWebRequest.UnEscapeURL(string.Format("{0}x{1}", canvasWidth, canvasHeight));
         qs += "&scale=" + (doubleResolution ? "2" : "1");
         qs += "&maptype=" + mapType.ToString().ToLower();
-        
+
         qs += "&sensor=false";
-        
+
         qs += "&key=" + UnityWebRequest.UnEscapeURL(GoogleApiKey);
         string requestUrl = url + "?" + qs;
         UnityWebRequest request = UnityWebRequestTexture.GetTexture(requestUrl);
@@ -116,10 +97,19 @@ public class Googlemap : MonoBehaviour
         }
     }
 
-    public void updateLatLong(float latitude, float longitude)
+    public void updateLatLong(double latitude, double longitude)
     {
         centerLocation.latitude = latitude;
         centerLocation.longitude = longitude;
+        getZoom();
+    }
+
+    public void getZoom() {
+        //double metersPerPixel = 156543.03392 * Math.Cos(centerLocation.latitude * Math.PI / 180) / Math.Pow(2, zoom);
+        double meterPerPixel = WorldScaler.worldScale;
+        double zoomCalc = Math.Log(156543.03392 * Math.Cos(centerLocation.latitude * Math.PI / 180) / meterPerPixel) / Math.Log(2); 
+        zoom = (int)zoomCalc;
+        Debug.Log(string.Format("Zoom calc: {0}, Zoom: {1}",zoomCalc,zoom));
     }
 
 }
@@ -128,7 +118,7 @@ public class Googlemap : MonoBehaviour
 public class GoogleMapLocation
 {
     public string address;
-    public float latitude;
-    public float longitude;
+    public double latitude;
+    public double longitude;
 }
 
