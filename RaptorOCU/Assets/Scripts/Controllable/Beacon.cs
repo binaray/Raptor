@@ -65,7 +65,7 @@ namespace Controllable
         //image message type details: https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Image.html
         public void ImageSubscribe(int i)
         {
-            string imgId = string.Format("b{0}/compressedImage", i);
+            string imgId = string.Format("b{0}/camera/color/image_raw", i);
             OcuLogger.Instance.Logv("Subscribing to Image: " + imgId);
             imageSubId = RaptorConnector.Instance.rosSocket.Subscribe<sensor_msgs.Image>(imgId, ImageSubscriptionHandler);
         }

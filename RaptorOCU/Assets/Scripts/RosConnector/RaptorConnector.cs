@@ -42,7 +42,8 @@ public class RaptorConnector : Singleton<RaptorConnector>
     public void SetRosIp(string ip)
     {
         PlayerPrefs.SetString(PlayerPrefsConstants.ROS_BRIDGE_IP, ip);
-        RosBridgeServerUrl = "ws://" + ip + ":9090";
+        //RosBridgeServerUrl = "ws://" + ip + ":9090";
+        RosBridgeServerUrl = "ws://" + ip + ":11311";
     }
     public void RosConnectionRoutine() { StartCoroutine(ConnectAndWait()); }
     IEnumerator ConnectAndWait()

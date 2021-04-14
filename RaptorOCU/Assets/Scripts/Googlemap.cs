@@ -38,16 +38,13 @@ public class Googlemap : MonoBehaviour
 
     void Start()
     {
+        //centerLocation = 
         //var rectTransform = UiManager.Instance.GetComponent<RectTransform>();
-        canvasWidth = (int)mapTemplate.GetComponent<RectTransform>().rect.width;
-        canvasHeight = (int)mapTemplate.GetComponent<RectTransform>().rect.height;
-        if (loadOnStart) Refresh();
+        canvasWidth = (int)mapTemplate.GetComponent<RectTransform>().rect.width/2;
+        canvasHeight = (int)mapTemplate.GetComponent<RectTransform>().rect.height/2;
         getZoom();
-    }
 
-    public void Update()
-    {
-        //Debug.Log(string.Format("canvas width: {0}, canvas height: {1}", canvasWidth, canvasHeight));
+        if (loadOnStart) Refresh();
     }
 
     public void Refresh()
@@ -106,12 +103,34 @@ public class Googlemap : MonoBehaviour
 
     public void getZoom() {
         //double metersPerPixel = 156543.03392 * Math.Cos(centerLocation.latitude * Math.PI / 180) / Math.Pow(2, zoom);
-        double meterPerPixel = WorldScaler.worldScale;
-        double zoomCalc = Math.Log(156543.03392 * Math.Cos(centerLocation.latitude * Math.PI / 180) / meterPerPixel) / Math.Log(2); 
-        zoom = (int)zoomCalc;
+        double meterPerPixel = WorldScaler.worldScale*mapTemplate.GetComponent<RectTransform>().localScale.x/2;
+        double zoomCalc = Math.Log(156543.03392 * Math.Cos(centerLocation.latitude * Math.PI / 180) / meterPerPixel) / Math.Log(2);
+        zoom = 20;//(int)zoomCalc<=20? (int)zoomCalc: 20;
         Debug.Log(string.Format("Zoom calc: {0}, Zoom: {1}",zoomCalc,zoom));
     }
 
+    public double makeRad(double x) {
+        return x * Math.PI / 180;
+    }
+
+    public Vector3 calcDistanceFromCentreLatLon(double otherLat, double otherLon) {
+        return calcDistanceBtw2LatLon(centerLocation.latitude, centerLocation.longitude, otherLat, otherLon);
+    }
+
+    //Haversine formula
+    public Vector3 calcDistanceBtw2LatLon(double lat1, double lon1, double lat2, double lon2) {     
+        int R = 6378137; // Earth’s mean radius in meter
+        double latDiffMeters = lat2 - lat1;
+        double dLat = makeRad(latDiffMeters);
+        double dLong = makeRad(lon2 - lon1);
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+            Math.Cos(makeRad(lat1)) * Math.Cos(makeRad(lat2)) *
+            Math.Sin(dLong / 2) * Math.Sin(dLong / 2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        double d = R * c;
+        double horizontalDist = Math.Sqrt(Math.Pow(d, 2) - Math.Pow(latDiffMeters, 2));
+        return new Vector3((float)horizontalDist, (float)latDiffMeters,(float)d); // returns the distance in meter
+    }
 }
 
 [System.Serializable]
