@@ -16,10 +16,13 @@ public class RaptorConnector : Singleton<RaptorConnector>
     public int Timeout = 10;
     public RosSocket.SerializerEnum Serializer;
     public RosSocket rosSocket;
-    public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
+    //public string RosBridgeServerUrl = "192.168.137.185";
+    public string RosBridgeServerIP = "192.168.137.185";
+    public string RosBridgeServerPort = "9090";
     public enum BuildMode { UiTest, Prodution }
     public BuildMode buildMode;
 
+    public string RosBridgeServerUrl = "ws://192.168.137.185:9090";
     private ManualResetEvent isConnected = new ManualResetEvent(false);
     private OcuLogger ocuLogger;
 
@@ -27,7 +30,8 @@ public class RaptorConnector : Singleton<RaptorConnector>
     {
         ocuLogger = OcuLogger.Instance;
         //string ip = PlayerPrefs.GetString(PlayerPrefsConstants.ROS_BRIDGE_IP, null);
-        SetRosIp("0.0.0.0");
+        SetRosIp(RosBridgeServerIP,RosBridgeServerPort);
+        //SetRosIp("0.0.0.0");
         //if (ip != null)
         //{
         //    SetRosIp(ip);
@@ -37,13 +41,17 @@ public class RaptorConnector : Singleton<RaptorConnector>
         else if (buildMode==BuildMode.Prodution)
             RosConnectionRoutine();
     }
-
-    /*-- Ros socket initializers and handlers --*/
     public void SetRosIp(string ip)
     {
         PlayerPrefs.SetString(PlayerPrefsConstants.ROS_BRIDGE_IP, ip);
-        //RosBridgeServerUrl = "ws://" + ip + ":9090";
-        RosBridgeServerUrl = "ws://" + ip + ":11311";
+        RosBridgeServerUrl = "ws://" + ip + ":9090";
+        //RosBridgeServerUrl = "ws://" + ip + ":11311";
+    }
+    /*-- Ros socket initializers and handlers --*/
+    public void SetRosIp(string ip, string port)
+    {
+        PlayerPrefs.SetString(PlayerPrefsConstants.ROS_BRIDGE_IP, ip);
+        RosBridgeServerUrl = string.Format("ws://{0}:{1}",ip,port);
     }
     public void RosConnectionRoutine() { StartCoroutine(ConnectAndWait()); }
     IEnumerator ConnectAndWait()

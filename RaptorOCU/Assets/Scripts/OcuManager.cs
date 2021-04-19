@@ -17,8 +17,12 @@ public class OcuManager : Singleton<OcuManager>
     private PlannerUnit plannerUnitPrefab;
     [SerializeField]
     private GameObject payloadDispTemplate;
+    
+    
     [SerializeField]
     private GameObject beaconGuiTemplate;
+    [SerializeField]
+    private GameObject payloadGuiTemplate;
 
     /* Scene graphical displays */
     [SerializeField]
@@ -506,18 +510,29 @@ public class OcuManager : Singleton<OcuManager>
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
+                List<Vector3> beaconPPos = new List<Vector3>();
+                beaconPPos.Add(new Vector3(-20, 20, 0));
+                beaconPPos.Add(new Vector3(-6.67f, 20, 0));
+                beaconPPos.Add(new Vector3(-13.33f, 13.33f, 0));
 
-                GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
-                
+
+                /*
+                //beacon video 
                 if (i == 1) {
+                    GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
                     newBeaconDisp.SetActive(true);
                     newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                     newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
                     b.beaconDisplay = newBeaconDisp;
                     b.ImageUITestSetup();
                 }
+                */
+
                 //if (i==1) b.SetupCamera("http://192.168.1.142:5000/video_feed");
-                b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
+
+                b.Init(id, i, beaconPPos[i - 1], new Quaternion(0, 0, 0, 1));
+
+                //b.Init(id, i, new Vector3((i - 1) % 2 * 6, (i - 1) / 2 * 6, 0), new Quaternion(0, 0, 0, 1));
                 ocuLogger.Logv(string.Format("Beacon of id {0} added at {1}", id, b.realPosition));
                 controllableUnits.Add(id, b);
                 beaconIds.Add(id);
@@ -532,7 +547,22 @@ public class OcuManager : Singleton<OcuManager>
                 newPayloadDisp.transform.SetParent(payloadDispTemplate.transform.parent, false);
                 newPayloadDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = p; });
                 p.payloadDisplay = newPayloadDisp;
-                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
+
+
+                if (i == 1)
+                {
+                    GameObject newPayloadDisplay = Instantiate(payloadGuiTemplate);
+                    newPayloadDisplay.SetActive(true);
+                    newPayloadDisplay.transform.SetParent(payloadGuiTemplate.transform.parent, false);
+
+                    newPayloadDisplay.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = p; });        
+                    p.payloadDisplayCamera = newPayloadDisplay;
+                    p.ImageUITestSetup(i);
+
+                    p.UITestLatLon();
+                }
+
+                p.Init(id, i, new Vector3(i * 4 - 3 * payloadCount, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);
@@ -542,14 +572,24 @@ public class OcuManager : Singleton<OcuManager>
         else
         {
             List<Vector3> beaconPPos = new List<Vector3>();
-            beaconPPos.Add(new Vector3(0, 10, 0));
-            beaconPPos.Add(new Vector3(4, -13, 0));
-            beaconPPos.Add(new Vector3(24, 0, 0));
+            /* old values
+             * beaconPPos.Add(new Vector3(0, 10, 0));
+             * beaconPPos.Add(new Vector3(4, -13, 0));
+             * beaconPPos.Add(new Vector3(24, 0, 0));
+            */
+
+            beaconPPos.Add(new Vector3(-20, 20, 0));
+            beaconPPos.Add(new Vector3(-6.67f, 20, 0));
+            beaconPPos.Add(new Vector3(-13.33f, 13.33f, 0));
 
             for (int i = 1; i < beaconCount + 1; i++)
             {
                 string id = string.Format("b{0}", i);
                 Beacon b = Instantiate(beaconPrefab);
+
+
+                /*
+                //beacon video 
                 if (i == 1)
                 {
                     GameObject newBeaconDisp = Instantiate(beaconGuiTemplate);
@@ -557,12 +597,13 @@ public class OcuManager : Singleton<OcuManager>
                     newBeaconDisp.transform.SetParent(beaconGuiTemplate.transform.parent, false);
                     newBeaconDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = b; });
                     b.beaconDisplay = newBeaconDisp;
+                    //video streaming
+                    b.ImageSubscribe(i);
                 }
+                */
+                
                 b.Init(id, i, beaconPPos[i-1], new Quaternion(0, 0, 0, 1));
                 b.CmdVelPublisherSetup("beacon" + i);
-
-                //video streaming
-                b.ImageSubscribe(i);
                 
                 //if (i==1) b.SetupCamera("http://192.168.1.144:5000/video_feed"); 
 
@@ -581,15 +622,25 @@ public class OcuManager : Singleton<OcuManager>
                 newPayloadDisp.GetComponent<Button>().onClick.AddListener(() => { SelectedUnit = p; });
                 p.payloadDisplay = newPayloadDisp;
 
-                p.Init(id, i, new Vector3(i, 3, 0), new Quaternion(0, 0, 0, 1));
+                p.Init(id, i, new Vector3(i * 4 - 3 * payloadCount, 3, 0), new Quaternion(0, 0, 0, 1));
 
                 //Setup of Ros endpoints
                 p.OdomSubscribe(i);
-                if(i==1) p.GpsSubscribe(i);
+                
                 p.CmdVelPublisherSetup("raptor" + i);
                 p.SetupMoveBaseAction(i);
 
+                if (i == 1)
+                {
+                    p.GpsSubscribe(i); //gps
 
+                    //camera 
+                    GameObject newPayloadDisplay = Instantiate(payloadGuiTemplate);
+                    newPayloadDisplay.SetActive(true);
+                    newPayloadDisplay.transform.SetParent(payloadGuiTemplate.transform.parent, false);
+                    p.payloadDisplayCamera = newPayloadDisplay;
+                    p.ImageSubscribe(i);
+                }
 
                 ocuLogger.Logv(string.Format("Payload of id {0} added at {1}", id, p.realPosition));
                 controllableUnits.Add(id, p);

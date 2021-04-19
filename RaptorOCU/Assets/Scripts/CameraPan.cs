@@ -41,7 +41,7 @@ public class CameraPan : MonoBehaviour
     Vector2 lowerBound;
     Vector2 upperBound;
     Vector2 newLowerBound;
-    float gridlineStep = 2.0f;
+    float gridlineStep = 1.2f;
 
     void MoveCam()
     {
@@ -151,7 +151,7 @@ public class CameraPan : MonoBehaviour
                 float y = gridlineRenderTransform.GetChild(h).GetComponent<LineRenderer>().GetPosition(0).y;
                 if (textCount <= gridTextTransform.childCount) Instantiate(gridText, gridTextTransform);
                 gridTextTransform.GetChild(textCount).position = new Vector3(x + textXOffset, y + textYOffset, 0);
-                gridTextTransform.GetChild(textCount++).GetComponent<TMPro.TextMeshPro>().text = WorldScaler.WorldToRealPosition(x) + ", " + WorldScaler.WorldToRealPosition(y);
+                gridTextTransform.GetChild(textCount++).GetComponent<TMPro.TextMeshPro>().text = string.Format("{0:0.0#}, {1:0.0#}", WorldScaler.WorldToRealPosition(x), WorldScaler.WorldToRealPosition(y));
             }
         }
 

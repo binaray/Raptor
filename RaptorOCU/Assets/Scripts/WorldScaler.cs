@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldScaler : Singleton<WorldScaler>
-{
-    public static float worldScale = 2;   //Current scale 2 units in Unity to 2m irl
+{ 
+    public static float worldScale = 0.36f;//2;   //Current scale 2 units in Unity to 2m irl
 
     public static Vector3 WorldToRealPosition(Vector3 worldPos)
     {

@@ -23,7 +23,7 @@ namespace Controllable
 
         public override void Init(string id, int num, Vector3 realPos, Quaternion realRot)
         {
-            beaconDisplay.transform.GetChild(0).GetComponent<Text>().text = id;
+            //beaconDisplay.transform.GetChild(0).GetComponent<Text>().text = id;
             base.Init(id, num, realPos, realRot) ;
         }
 

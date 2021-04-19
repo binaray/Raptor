@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using RosSharp.RosBridgeClient.Messages.Sensor;
-using geometry_msgs = RosSharp.RosBridgeClient.Messages.Geometry; 
+using geometry_msgs = RosSharp.RosBridgeClient.Messages.Geometry;
+using sensor_msgs = RosSharp.RosBridgeClient.Messages.Sensor;
+using UnityEngine.UI;
 
 
 namespace Controllable
@@ -16,6 +18,12 @@ namespace Controllable
         private LatitudeLongitude latLong = new LatitudeLongitude();
         private bool isNatSatReceived = false;
         private bool isGeomTwistReceived = false;
+        private bool isImgReceived = false;
+        private string imageSubId;
+        public Texture2D camTex;
+        public byte[] imageData;
+
+        public GameObject payloadDisplayCamera;
 
         [SerializeField]
         private Googlemap googlemap;
@@ -36,9 +44,11 @@ namespace Controllable
                 if (!Compass.Instance.isCalibrating) Compass.Instance.ImuAngleOffsetSubscribe(num);
                 OdomUpdate();
                 posText.text = string.Format("{0}, {1}", realPosition.x.ToString("0.00"), realPosition.y.ToString("0.00")); //((Vector2)realPosition).ToString();
+                
+                //change position for more gps accuracy (use if the odom values are not accurate enough) (NOTE: UNTESTED)
             }
             if (isNatSatReceived) {
-                //googlemap.updateLatLong(latLong.lat, latLong.lon);
+                refreshPositionGPSDisplay(googlemap.getWorldPositionUsingLatLon(latLong.lat, latLong.lon));
             }
 
         }
@@ -47,6 +57,7 @@ namespace Controllable
         {
             base.Init(id, raptorNum, realPos, realRot);
             payloadDisplay.GetComponent<PayloadDisplayItem>().SetText(id);
+
             if (RaptorConnector.Instance.buildMode == RaptorConnector.BuildMode.Prodution)
                 StartCoroutine(ConnectionTimeout());
         }
@@ -108,7 +119,7 @@ namespace Controllable
         //message type details: http://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
         public void GpsSubscribe(int i)
         {
-            string gpsId = string.Format("raptor{0}/sensors/filtered", i);
+            string gpsId = string.Format("ublox/fixed");
             OcuLogger.Instance.Logv("Subscribing to GPS: " + gpsId);
             NavSatFix natSatData = new NavSatFix();
             gpsSubId = RaptorConnector.Instance.rosSocket.Subscribe<NavSatFix>(gpsId, NatSatSubscriptionHandler);
@@ -119,8 +130,53 @@ namespace Controllable
             latLong.lat = natSat.latitude;
             latLong.lon = natSat.longitude;
             isNatSatReceived = true;
+            Debug.Log(string.Format("PAYLOAD NATSATFIX lat {0} lon {1}", latLong.lat, latLong.lon));
+            OcuLogger.Instance.Logv(string.Format("lat {0} lon {1}",latLong.lat,latLong.lon));
             //timeElapsed = 0f;
         }
+
+        public void ImageSubscribe(int i)
+        {
+            payloadDisplayCamera.transform.GetChild(0).GetComponent<Text>().text = "P"+i;
+
+            string imgId = string.Format("p{0}/camera/color/image_raw", i);
+            OcuLogger.Instance.Logv("Subscribing to Image: " + imgId);
+            imageSubId = RaptorConnector.Instance.rosSocket.Subscribe<sensor_msgs.Image>(imgId, ImageSubscriptionHandler);
+        }
+
+        protected virtual void ImageSubscriptionHandler(sensor_msgs.Image image)
+        {
+            camTex = new Texture2D(2, 2);
+            imageData = image.data;
+            isImgReceived = true;
+            camTex.LoadImage(imageData);
+            payloadDisplayCamera.GetComponent<RawImage>().texture = camTex;
+        }
+        public void ImageUITestSetup(int i)
+        {
+            camTex = new Texture2D(2, 2);
+            payloadDisplayCamera.transform.GetChild(0).GetComponent<Text>().text = "P" + i;
+            StartCoroutine(ImageUITestUpdator());
+        }
+        IEnumerator ImageUITestUpdator()
+        {
+            //Get the path of the Game data folder
+            string full_path_start = Application.dataPath;
+            string imageFilePath = "\\Resources\\Sprites\\UITestBeaconImg.png";
+            //Output the Game data path to the console
+            Debug.Log("dataPath : " + full_path_start);
+
+            string url = full_path_start + imageFilePath;
+
+            WWW www = new WWW(url);
+
+            Debug.Log("bytes downloaded: " + www.bytesDownloaded);
+            yield return www;
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            www.LoadImageIntoTexture(camTex);
+            payloadDisplayCamera.GetComponent<RawImage>().texture = camTex;
+        }
+
 
         /*
         public void GeomTwistSubscribe(int i)
@@ -135,7 +191,7 @@ namespace Controllable
             isGeomTwistReceived = true;
         }
         */
-        
+
         #endregion
 
         private void OnDestroy()
@@ -149,5 +205,12 @@ namespace Controllable
             public double lat { get; set; }
             public double lon { get; set; }
         };
+
+
+        public void UITestLatLon() {
+            latLong.lat = 1.340205588348994;
+            latLong.lon = 103.96460602305316;
+            isNatSatReceived = true;
+        }
     }
 }

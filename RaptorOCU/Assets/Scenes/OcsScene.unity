@@ -2278,8 +2278,8 @@ MonoBehaviour:
   loadOnStart: 1
   centerLocation:
     address: 
-    latitude: 1.3414522562180773
-    longitude: 103.96308384039409
+    latitude: 1.3400806010696753
+    longitude: 103.9646077669729
   zoom: 20
   mapType: 1
   doubleResolution: 1
@@ -5623,8 +5623,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -639.99994, y: -639.99994}
-  m_SizeDelta: {x: 1280, y: 1280}
+  m_AnchoredPosition: {x: -1000, y: -1000}
+  m_SizeDelta: {x: 2000, y: 2000}
   m_Pivot: {x: 0, y: 0}
 --- !u!1 &795768352
 GameObject:
@@ -16618,6 +16618,7 @@ MonoBehaviour:
     type: 3}
   payloadDispTemplate: {fileID: 1606411131}
   beaconGuiTemplate: {fileID: 657181774}
+  payloadGuiTemplate: {fileID: 657181774}
   boundaryLineRenderer: {fileID: 1892530628}
   curSpeed: 5
   rotSpeed: 60
@@ -16654,8 +16655,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Timeout: 10
   Serializer: 0
-  RosBridgeServerUrl: ws://10.21.129.12:11311
+  RosBridgeServerIP: 192.168.137.185
+  RosBridgeServerPort: 9090
   buildMode: 0
+  RosBridgeServerUrl: 10.21.129.12
 --- !u!1 &2137493933
 GameObject:
   m_ObjectHideFlags: 0

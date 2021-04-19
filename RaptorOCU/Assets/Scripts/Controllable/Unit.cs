@@ -91,6 +91,13 @@ namespace Controllable
             transform.position = WorldScaler.RealToWorldPosition(realPosition);
             spriteTransform.rotation = realRotation;
         }
+
+        public void refreshPositionGPSDisplay(Vector3 beaconWorldPosition)
+        {
+            transform.position = beaconWorldPosition;
+            spriteTransform.rotation = realRotation;
+        }
+
         #endregion
 
         #region ROS Odometry subscription methods

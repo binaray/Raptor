@@ -28,11 +28,12 @@ public class Googlemap : MonoBehaviour
     public string GoogleApiKey;
     public bool loadOnStart = true;
     public GoogleMapLocation centerLocation;
-    public int zoom = 13;
+    public int zoom = 20;
     public MapType mapType;
     //public int width = 800;
     //public int height = 600;
     public bool doubleResolution = false;
+    private bool loaded;
 
     private int canvasWidth, canvasHeight;
 
@@ -42,7 +43,8 @@ public class Googlemap : MonoBehaviour
         //var rectTransform = UiManager.Instance.GetComponent<RectTransform>();
         canvasWidth = (int)mapTemplate.GetComponent<RectTransform>().rect.width/2;
         canvasHeight = (int)mapTemplate.GetComponent<RectTransform>().rect.height/2;
-        getZoom();
+        //getZoom();
+        loaded = false;
 
         if (loadOnStart) Refresh();
     }
@@ -54,43 +56,47 @@ public class Googlemap : MonoBehaviour
 
     IEnumerator _Refresh()
     {
-        string url = "https://maps.googleapis.com/maps/api/staticmap";
-        string qs = "";
-
-        if (centerLocation.address != "")
+        if (!loaded)
         {
-            qs += "center=" + UnityWebRequest.UnEscapeURL(centerLocation.address);
-        }
-        else
-        {
-            qs += "center=" + UnityWebRequest.UnEscapeURL(string.Format("{0},{1}", centerLocation.latitude, centerLocation.longitude));
-        }
+            string url = "https://maps.googleapis.com/maps/api/staticmap";
+            string qs = "";
 
-        qs += "&zoom=" + zoom.ToString();
-        //Debug.Log(string.Format("canvas w {0} h {1}",canvasWidth,canvasHeight));
-        qs += "&size=" + UnityWebRequest.UnEscapeURL(string.Format("{0}x{1}", canvasWidth, canvasHeight));
-        qs += "&scale=" + (doubleResolution ? "2" : "1");
-        qs += "&maptype=" + mapType.ToString().ToLower();
+            if (centerLocation.address != "")
+            {
+                qs += "center=" + UnityWebRequest.UnEscapeURL(centerLocation.address);
+            }
+            else
+            {
+                qs += "center=" + UnityWebRequest.UnEscapeURL(string.Format("{0},{1}", centerLocation.latitude, centerLocation.longitude));
+            }
 
-        qs += "&sensor=false";
+            qs += "&zoom=" + zoom.ToString();
+            //Debug.Log(string.Format("canvas w {0} h {1}",canvasWidth,canvasHeight));
+            qs += "&size=" + UnityWebRequest.UnEscapeURL(string.Format("{0}x{1}", canvasWidth, canvasHeight));
+            qs += "&scale=" + (doubleResolution ? "2" : "1");
+            qs += "&maptype=" + mapType.ToString().ToLower();
 
-        qs += "&key=" + UnityWebRequest.UnEscapeURL(GoogleApiKey);
-        string requestUrl = url + "?" + qs;
-        UnityWebRequest request = UnityWebRequestTexture.GetTexture(requestUrl);
-        Debug.Log(requestUrl);
+            qs += "&sensor=false";
 
-        yield return request.SendWebRequest();
-        if (request.isNetworkError || request.isHttpError)
-        {
-            Debug.Log(request.error);
-        }
-        else
-        {
-            Texture2D texture = DownloadHandlerTexture.GetContent(request);
-            //mapTemplate.GetComponent<SpriteRenderer>().material.mainTexture = texture;
+            qs += "&key=" + UnityWebRequest.UnEscapeURL(GoogleApiKey);
+            string requestUrl = url + "?" + qs;
+            UnityWebRequest request = UnityWebRequestTexture.GetTexture(requestUrl);
+            Debug.Log(requestUrl);
 
-            //mapTemplate.GetComponent<SpriteRenderer>().material.shader = Shader.Find("Sprites/Default");
-            mapTemplate.GetComponent<RawImage>().texture = texture;
+            yield return request.SendWebRequest();
+            if (request.isNetworkError || request.isHttpError)
+            {
+                Debug.Log(request.error);
+            }
+            else
+            {
+                Texture2D texture = DownloadHandlerTexture.GetContent(request);
+                //mapTemplate.GetComponent<SpriteRenderer>().material.mainTexture = texture;
+
+                //mapTemplate.GetComponent<SpriteRenderer>().material.shader = Shader.Find("Sprites/Default");
+                mapTemplate.GetComponent<RawImage>().texture = texture;
+                loaded = true;
+            }
         }
     }
 
@@ -111,6 +117,12 @@ public class Googlemap : MonoBehaviour
 
     public double makeRad(double x) {
         return x * Math.PI / 180;
+    }
+
+    public Vector3 getWorldPositionUsingLatLon(double otherLat, double otherLon) {
+        Vector3 distanceFromCenter = calcDistanceFromCentreLatLon(otherLat, otherLon);
+        Vector3 worldPosition = new Vector3(distanceFromCenter.x,distanceFromCenter.y,0);
+        return worldPosition * WorldScaler.worldScale;
     }
 
     public Vector3 calcDistanceFromCentreLatLon(double otherLat, double otherLon) {
@@ -137,7 +149,7 @@ public class Googlemap : MonoBehaviour
 public class GoogleMapLocation
 {
     public string address;
-    public double latitude;
-    public double longitude;
+    public double latitude = 1.34008060106968;
+    public double longitude = 103.964607766973;
 }
 
